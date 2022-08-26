@@ -226,7 +226,7 @@ Open package.json and add the build scripts:
 ```
 "scripts": {
   ...
-  "azure-build": "starless-server build --azure-functions --aws-lambda"
+  "build": "starless-server build --azure-functions --aws-lambda"
 }
 ```
 > [Azure Functions Core Tools](https://github.com/Azure/azure-functions-core-tools) is required for building azure-functions
