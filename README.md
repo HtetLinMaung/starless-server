@@ -17,3 +17,9 @@ npm install starless-server
 ```
 
 ## Quick Start
+
+Install starless-server globally.
+
+```
+npm i starless-server --location=global
+```
