@@ -154,3 +154,12 @@ module.exports = (req, res) => {
 ## Static File Serving
 
 starless-server can serve static files, like images, under a folder called public in the root directory. Files inside public can then be requested by your browser starting from the base URL `/`.
+
+## Environment Variables
+
+starless-server has built-in support for loading environment variables from `.env` into `process.env`.
+
+```
+port=3001
+
+```
