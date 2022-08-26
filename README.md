@@ -42,7 +42,7 @@ Inside the routes directory add the `posts.js` file to get started. This is the 
 
 Populate `routes/posts.js` with the following contents:
 
-```
+```js
 const posts = [
   {
     id: 1,
