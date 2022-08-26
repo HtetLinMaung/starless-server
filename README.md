@@ -1,10 +1,8 @@
 # Starless server
 
-All in one, minimalist web server for developing <b>single page applications, express, lambda, azure function, graphql and socket.io</b>.
+All in one, minimalist web server for <b>spa, express, lambda, azure function, graphql and socket.io</b>.
 
 ## Installation
-
-This is a Node.js module available through the npm registry.
 
 Before installing, download and install Node.js. Node.js 0.10 or higher is required.
 
@@ -35,3 +33,4 @@ Open package.json and add the following scripts:
 
 - `start` - Runs `starless-server` to start a production server
 - `build` - Bundles app for azure-functions and lambda
+> Azure Functions Core Tools is required for building azure-functions
