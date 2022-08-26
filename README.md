@@ -26,11 +26,16 @@ Open package.json and add the following scripts:
 
 ```
 "scripts": {
-  "start": "starless-server",
+  "start": "starless-server start",
   "build": "starless-server build --azure-functions --aws-lambda"
 }
 ```
 
-- `start` - Runs `starless-server` to start a production server
+- `start` - Runs `starless-server start` to start a production server
 - `build` - Bundles app for azure-functions and lambda
 > [Azure Functions Core Tools](https://github.com/Azure/azure-functions-core-tools) is required for building azure-functions
+
+Create two directories `routes` and `public` at the root of your application:
+
+- routes - Associated with a route based on their file name. For example routes/todos.js is mapped to /todos
+- public - Stores static assets such as images, fonts, etc.
