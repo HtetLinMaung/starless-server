@@ -37,5 +37,13 @@ Open package.json and add the following scripts:
 
 Create two directories `routes` and `public` at the root of your application:
 
-- routes - Associated with a route based on their file name. For example routes/todos.js is mapped to /todos
+- routes - Associated with a route based on their file name. For example routes/posts.js is mapped to /posts
 - public - Stores static assets such as images, fonts, etc.
+
+Inside the routes directory add the `posts.js` file to get started. This is the route that is handled when the user request `/posts`.
+
+Populate `routes/posts.js` with the following contents:
+
+```
+module.exports = (req, res) => res.json({message: 'hello world'})
+```
