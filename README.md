@@ -13,3 +13,5 @@ If this is a brand new project, make sure to create a package.json first with th
 Installation is done using the npm install command:
 
 $ npm install starless-server
+
+## Quick Start
