@@ -72,7 +72,7 @@ After the set up is complete:
 
 ## Routes
 
-In starless-server, a route is a function exported from a `.js` file in the routes directory. Each route is associated with a route based on its file name. If you create `routes/comments.js`, it will be accessible at /comments.
+In starless-server, a route is a function exported from a `.js` file in the routes directory. Each route is associated with a route based on its file name. If you create `routes/comments.js`, it will be accessible at `/comments`.
 
 Three types of function can be used in routes directory.
 
@@ -87,7 +87,7 @@ const httpTrigger = async function (context, req) {
     },
   };
 };
-exports.default = httpTrigger;
+module.exports = httpTrigger;
 ```
 - Lambda
 
@@ -109,3 +109,7 @@ module.exports = (req, res) => {
   res.json({ message: "hello from express" });
 };
 ```
+
+## Dynamic Routes
+
+starless-server supports dynamic routes. For example, if you create a file called `routes/posts/:id.js`, then it will be accessible at posts/1, posts/2, etc.
