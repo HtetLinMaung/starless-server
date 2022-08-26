@@ -146,8 +146,10 @@ module.exports = (req, res) => {
     data: post,
   });
 };
-
 ```
+
+> <b>Note</b> You should not use dynamic routes with lambda and azure function. Building dynamic route lambda and azure function is not supported.
+
 
 ## Static File Serving
 
