@@ -72,9 +72,12 @@ After the set up is complete:
 
 ## Routes
 
-In starless-server, a route is a function exported from a `.js` file in the routes directory. Each route is associated with a route based on its file name. Three types of function style can be used in routes directory.
+In starless-server, a route is a function exported from a `.js` file in the routes directory. Each route is associated with a route based on its file name. 
+
+Three types of handler can be used in routes directory.
 
 - Azure Function
+
 ```
 const httpTrigger = async function (context, req) {
   context.log("HTTP trigger function processed a request.");
@@ -85,4 +88,24 @@ const httpTrigger = async function (context, req) {
   };
 };
 exports.default = httpTrigger;
+```
+- Lambda
+
+```
+const handler = async (event) => {
+  return {
+    statusCode: 200,
+    body: JSON.stringify({
+      message: "hello from lambda",
+    }),
+  };
+};
+exports.handler = handler;
+```
+
+- Express
+```
+module.exports = (req, res) => {
+  res.json({ message: "hello from express" });
+};
 ```
