@@ -1,3 +1,3 @@
 # Starless server
 
-All in one, minimalist web server for express, lambda, azure function, graphql and socket.io.
+All in one, minimalist web server for single page applications, express, lambda, azure function, graphql and socket.io.
