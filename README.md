@@ -8,7 +8,7 @@ If this is a brand new project, make sure to create a package.json first with th
 
 Installation is done using the npm install command:
 
-```bash
+```
 npm install starless-server
 ```
 
@@ -78,7 +78,7 @@ Three types of function can be used in routes directory.
 
 - Azure Function
 
-```
+```js
 const httpTrigger = async function (context, req) {
   context.log("HTTP trigger function processed a request.");
   context.res = {
@@ -89,9 +89,9 @@ const httpTrigger = async function (context, req) {
 };
 module.exports = httpTrigger;
 ```
-- Lambda
 
-```
+- Lambda
+```js
 const handler = async (event) => {
   return {
     statusCode: 200,
@@ -104,7 +104,7 @@ exports.handler = handler;
 ```
 
 - Express
-```
+```js
 module.exports = (req, res) => {
   res.json({ message: "hello from express" });
 };
@@ -116,7 +116,7 @@ module.exports = (req, res) => {
 
 starless-server supports express dynamic routes. For example, if you create a file called `routes/posts/:id.js`, then it will be accessible at `posts/1`, `posts/2`, etc.
 
-```
+```js
 const posts = [
   {
     id: 1,
@@ -180,14 +180,14 @@ Create `graphql` directory at the root of your application and then create two f
 - `root.js` - The root provides a resolver function for each API endpoint
 
 Populate `graphql/schema.gql` with the following contents:
-```
+```gql
 type Query {
   hello: String
 }
 ```
 
 Populate `graphql/root.js` with the following contents:
-```
+```js
 module.exports = {
     hello: () => {
         return "Hello world!";
@@ -207,7 +207,7 @@ starless-server has build in support for `socket.io`. In starless-server, an eve
 Create `events` directory at the root of your application. 
 
 Example `events/chat.js`
-```
+```js
 module.exports = (io, socket) => (anotherSocketId, msg) => {
   socket.to(anotherSocketId).emit("chat", socket.id, msg);
 };
@@ -223,7 +223,7 @@ Two options can be passed in build command:
 
 Open package.json and add the build scripts:
 
-```
+```json
 "scripts": {
   ...
   "build": "starless-server build --azure-functions --aws-lambda"
