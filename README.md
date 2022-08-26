@@ -153,7 +153,7 @@ module.exports = (req, res) => {
 
 ## Static File Serving
 
-starless-server can serve static files, like images, under a folder called public in the root directory. Files inside public can then be requested by your browser starting from the base URL `/`.
+starless-server can serve static files, like images, under a folder called `public` in the root directory. Files inside public can then be requested by your browser starting from the base URL `/`.
 
 ## Environment Variables
 
@@ -161,5 +161,29 @@ starless-server has built-in support for loading environment variables from `.en
 
 ```
 port=3001
+spa_path=dist/authentication
+graphql_path=/api/graphql
+request_body_size=1000kb
+```
 
+## GraphQL API
+
+starless-server can be used as GraphQL API server. 
+
+Create `graphql` directory at the root of your application and then create two files `schema.gql` and `root.js` at `graphql` directory.
+
+Populate `graphql/schema.gql` with the following contents:
+```
+type Query {
+  hello: String
+}
+```
+
+Populate `graphql/root.js` with the following contents:
+```
+module.exports = {
+    hello: () => {
+        return "Hello world!";
+    },
+};
 ```
