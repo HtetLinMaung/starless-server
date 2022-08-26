@@ -33,4 +33,4 @@ Open package.json and add the following scripts:
 
 - `start` - Runs `starless-server` to start a production server
 - `build` - Bundles app for azure-functions and lambda
-> Azure Functions Core Tools is required for building azure-functions
+> [Azure Functions Core Tools](https://docs.microsoft.com/en-us/azure/azure-functions/functions-run-local?tabs=v4%2Cmacos%2Ccsharp%2Cportal%2Cbash) is required for building azure-functions
