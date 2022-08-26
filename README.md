@@ -114,6 +114,39 @@ module.exports = (req, res) => {
 
 starless-server supports dynamic routes. For example, if you create a file called `routes/posts/:id.js`, then it will be accessible at `posts/1`, `posts/2`, etc.
 
+```
+const posts = [
+  {
+    id: 1,
+    title:
+      "Can't Stop Thinking About Her? Here's Why You Need to Meet More Girls",
+    description: "lorem ipsum",
+    content:
+      "You know that feeling. There's this girl you've been chasing forever. 
+      You positively, absolutely, can't stop thinking about her. She's the most amazing woman in the world 
+      -- you're certain of it. There's never been another one like her.",
+  },
+];
+
+module.exports = (req, res) => {
+  const post = posts.find((p) => (p.id = req.params.id));
+
+  if (!post) {
+    return res.status(404).json({
+      code: 404,
+      message: "Post not found!",
+    });
+  }
+
+  res.json({
+    code: 200,
+    message: "Fetched post successful.",
+    data: post,
+  });
+};
+
+```
+
 ## Static File Serving
 
 starless-server can serve static files, like images, under a folder called public in the root directory. Files inside public can then be requested by your browser starting from the base URL `/`.
