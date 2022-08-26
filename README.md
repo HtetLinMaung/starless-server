@@ -212,3 +212,26 @@ module.exports = (io, socket) => (anotherSocketId, msg) => {
   socket.to(anotherSocketId).emit("chat", socket.id, msg);
 };
 ```
+
+## Building Serverless Functions
+
+In starless-server, you can write both azure function and aws lambda. When you want to deploy those functions to lambda or azure-functions you don't need to worry about changing azure function code to lambda or lambda code to azure function vice versa. starless-server will automatically handle those heavy task for you when building.
+
+Two options can be passed in build command:
+- `--azure-functions` - build for azure-function
+- `--aws-lambda` - build for lambda
+
+Open package.json and add the build scripts:
+
+```
+"scripts": {
+  ...
+  "azure-build": "starless-server build --azure-functions --aws-lambda"
+}
+```
+> [Azure Functions Core Tools](https://github.com/Azure/azure-functions-core-tools) is required for building azure-functions
+
+Run `npm run build`. Two directories `azure_functions` and `aws_lambda` will created in your application root directory.
+
+- For deploying azure function see more at [Azure Function](https://docs.microsoft.com/en-us/azure/azure-functions/create-first-function-vs-code-node#deploy-the-project-to-azure)
+- For lambda you must manually copy codes from aws_lambda directory and paste at lambda functions console. Files not from `routes` directory are placed and zipped in `layers/common/common.zip`. You must upload `common.zip` as lambda layer. See more at [Lambda Layers](https://docs.aws.amazon.com/lambda/latest/dg/configuration-layers.html)
