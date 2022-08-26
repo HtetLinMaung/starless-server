@@ -202,7 +202,7 @@ After the set up is complete:
 
 ## Socket.IO
 
-starless-server has build in support for `socket.io`. In starless-server, an event is a function exported from a `.js` file in the events directory. Each event is associated with its file name. If you create `events/chat.js`, it will listen at `chat` event.
+starless-server has build in support for `socket.io`. In starless-server, an event is a function exported from a `.js` file in the `events` directory. Each event is associated with its file name. If you create `events/chat.js`, it will listen at `chat` event.
 
 Create `events` directory at the root of your application. 
 
