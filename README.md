@@ -66,3 +66,8 @@ module.exports = (req, res) => {
   });
 };
 ```
+
+After the set up is complete:
+
+- Run `npm start` to start the production server on http://localhost:3000
+- Visit http://localhost:3000/posts to view your posts
