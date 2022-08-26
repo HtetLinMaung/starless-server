@@ -47,8 +47,12 @@ Populate `routes/posts.js` with the following contents:
 ```
 const posts = [
   {
-    title: "How female mindset works",
+    id: 1,
+    title:
+      "Can't Stop Thinking About Her? Here's Why You Need to Meet More Girls",
     description: "lorem ipsum",
+    content:
+      "You know that feeling. There's this girl you've been chasing forever. You positively, absolutely, can't stop thinking about her. She's the most amazing woman in the world -- you're certain of it. There's never been another one like her.",
   },
 ];
 
@@ -59,5 +63,4 @@ module.exports = (req, res) => {
     data: posts,
   });
 };
-
 ```
