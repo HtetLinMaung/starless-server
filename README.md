@@ -22,7 +22,7 @@ npm install starless-server
 
 Open package.json and add the following scripts:
 
-```
+```json
 "scripts": {
   "start": "starless-server start",
   "build": "starless-server build --azure-functions --aws-lambda"
