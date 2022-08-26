@@ -215,7 +215,7 @@ module.exports = (io, socket) => (anotherSocketId, msg) => {
 
 ## Building Serverless Functions
 
-In starless-server, you can write both azure function and aws lambda. When you want to deploy those functions to lambda or azure-functions you don't need to worry about changing azure function code to lambda or lambda code to azure function vice versa. starless-server will automatically handle those heavy task for you when building.
+In starless-server, you can write both Azure Functions and AWS Lambda. When you want to deploy those functions to lambda or azure-functions you don't need to worry about changing azure function code to lambda or lambda code to azure function vice versa. starless-server will automatically handle those heavy task for you when building.
 
 Two options can be passed in build command:
 - `--azure-functions` - build for azure-function
