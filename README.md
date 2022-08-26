@@ -18,8 +18,16 @@ npm install starless-server
 
 ## Quick Start
 
-Install starless-server globally.
+Install starless-server in your project.
 
 ```
-npm i starless-server --location=global
+npm install starless-server
+```
+
+Open package.json and add the following scripts:
+
+```
+"scripts": {
+  "start": "starless-server"
+}
 ```
