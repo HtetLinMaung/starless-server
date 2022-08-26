@@ -28,6 +28,10 @@ Open package.json and add the following scripts:
 
 ```
 "scripts": {
-  "start": "starless-server"
+  "start": "starless-server",
+  "build": "starless-server build --azure-functions --aws-lambda"
 }
 ```
+
+- `start` - Runs `starless-server` to start a production server
+- `build` - Bundles app for azure-functions and lambda
