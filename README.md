@@ -72,9 +72,9 @@ After the set up is complete:
 
 ## Routes
 
-In starless-server, a route is a function exported from a `.js` file in the routes directory. Each route is associated with a route based on its file name. 
+In starless-server, a route is a function exported from a `.js` file in the routes directory. Each route is associated with a route based on its file name. If you create `routes/comments.js`, it will be accessible at /comments.
 
-Three types of handler can be used in routes directory.
+Three types of function can be used in routes directory.
 
 - Azure Function
 
