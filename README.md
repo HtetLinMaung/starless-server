@@ -155,6 +155,10 @@ module.exports = (req, res) => {
 
 starless-server can serve static files, like images, under a folder called `public` in the root directory. Files inside public can then be requested by your browser starting from the base URL `/`.
 
+## Serving Single Page Application
+
+You don’t necessarily need a separate static server in order to run a SPA project in production. Place SPA `build` folder in the root directory and rename it to `dist`. starless-server will look for `index.html` under `dist` directory. If your `index.html` is not at the root of `dist` directory, you can change it from `.env` with `spa_path=dist/somefolder`.
+
 ## Environment Variables
 
 starless-server has built-in support for loading environment variables from `.env` into `process.env`.
@@ -172,6 +176,9 @@ starless-server can be used as GraphQL API server.
 
 Create `graphql` directory at the root of your application and then create two files `schema.gql` and `root.js` at `graphql` directory.
 
+- `schema.gql` - Construct a schema, using GraphQL schema language
+- `root.js` - The root provides a resolver function for each API endpoint
+
 Populate `graphql/schema.gql` with the following contents:
 ```
 type Query {
@@ -185,5 +192,23 @@ module.exports = {
     hello: () => {
         return "Hello world!";
     },
+};
+```
+
+After the set up is complete:
+
+- Run `npm start` to start the GraphQL API server on http://localhost:3000/graphql
+- Visit http://localhost:3000/graphql to see an interface that lets you enter queries
+
+## Socket.IO
+
+starless-server has build in support for `socket.io`. In starless-server, an event is a function exported from a `.js` file in the events directory. Each event is associated with its file name. If you create `events/chat.js`, it will listen at `chat` event.
+
+Create `events` directory at the root of your application. 
+
+Example `events/chat.js`
+```
+module.exports = (io, socket) => (anotherSocketId, msg) => {
+  socket.to(anotherSocketId).emit("chat", socket.id, msg);
 };
 ```
