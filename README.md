@@ -69,3 +69,20 @@ After the set up is complete:
 
 - Run `npm start` to start the production server on http://localhost:3000
 - Visit http://localhost:3000/posts to view your posts
+
+## Routes
+
+In starless-server, a route is a function exported from a `.js` file in the routes directory. Each route is associated with a route based on its file name. Three types of function style can be used in routes directory.
+
+- Azure Function
+```
+const httpTrigger = async function (context, req) {
+  context.log("HTTP trigger function processed a request.");
+  context.res = {
+    body: {
+      message: "hello from azure function",
+    },
+  };
+};
+exports.default = httpTrigger;
+```
