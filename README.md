@@ -45,5 +45,19 @@ Inside the routes directory add the `posts.js` file to get started. This is the 
 Populate `routes/posts.js` with the following contents:
 
 ```
-module.exports = (req, res) => res.json({message: 'hello world'})
+const posts = [
+  {
+    title: "How female mindset works",
+    description: "lorem ipsum",
+  },
+];
+
+module.exports = (req, res) => {
+  res.json({
+    code: 200,
+    message: "Fetched posts successful.",
+    data: posts,
+  });
+};
+
 ```
