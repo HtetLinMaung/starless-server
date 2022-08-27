@@ -97,7 +97,7 @@ const startExpressServer = () => {
                 rootValue: module.default,
                 graphiql: true,
             }));
-            console.log(chalk_1.default.gray(`Running a GraphQL API server at http://localhost:${PORT}/${process.env.graphql_path || "/graphql"}\n`));
+            console.log(chalk_1.default.gray(`Running a GraphQL API server at http://localhost:${PORT}${process.env.graphql_path || "/graphql"}\n`));
         }
         const routes = (0, get_files_1.default)(routesFolderPath);
         if (routes.length) {

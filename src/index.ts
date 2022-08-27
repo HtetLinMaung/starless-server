@@ -85,7 +85,7 @@ const startExpressServer = () => {
 
       console.log(
         chalk.gray(
-          `Running a GraphQL API server at http://localhost:${PORT}/${
+          `Running a GraphQL API server at http://localhost:${PORT}${
             process.env.graphql_path || "/graphql"
           }\n`
         )
