@@ -16,10 +16,14 @@ import getFiles from "./utils/get-files";
 import buildAzureFunction from "./build-azure-function";
 import buildAwsLambda from "./build-aws-lambda";
 
+const hooksFilePath = path.join(process.cwd(), "hooks.js");
+const routesFolderPath = path.join(process.cwd(), "routes");
+const graphqlFolderPath = path.join(process.cwd(), "graphql");
+const eventsFolderPath = path.join(process.cwd(), "events");
+
 const spaPath = path.join(process.cwd(), process.env.spa_path || "dist");
 
 const initEvents = async (io) => {
-  const eventsFolderPath = path.join(process.cwd(), "events");
   const handlers = [];
   if (fs.existsSync(eventsFolderPath)) {
     const files = getFiles(eventsFolderPath);
@@ -50,7 +54,11 @@ const initEvents = async (io) => {
   }
 };
 
-const startExpressServer = () => {
+const startExpressServer = async () => {
+  let hooksModule: any = {};
+  if (fs.existsSync(hooksFilePath)) {
+    hooksModule = await import(hooksFilePath);
+  }
   const PORT = process.env.port || 3000;
 
   const app = express();
@@ -60,9 +68,6 @@ const startExpressServer = () => {
   app.use(express.static("public"));
 
   app.use(express.static(spaPath));
-
-  const routesFolderPath = path.join(process.cwd(), "routes");
-  const graphqlFolderPath = path.join(process.cwd(), "graphql");
 
   const initRoutes = async () => {
     if (
@@ -184,10 +189,20 @@ const startExpressServer = () => {
     app.use("/*", (req: Request, res: Response) => {
       res.sendFile(path.join(spaPath, "index.html"));
     });
+
+    if ("errorHandler" in hooksModule) {
+      app.use(hooksModule.errorHandler);
+    }
   };
 
+  if ("beforeServerStart" in hooksModule) {
+    hooksModule.beforeServerStart();
+  }
   const server = app.listen(PORT, () => {
     console.log(chalk.gray(`Server listening on port ${PORT}\n`));
+    if ("afterServerStart" in hooksModule) {
+      hooksModule.afterServerStart();
+    }
     initRoutes().then(() => {
       const io = new Server(server, {
         cors: {

@@ -62,7 +62,8 @@ function buildAzureFunction() {
                 !absolute.includes(".vscode") &&
                 !absolute.includes("routes") &&
                 !absolute.includes("graphql") &&
-                !absolute.includes("events")) {
+                !absolute.includes("events") &&
+                !absolute.includes("hooks.js")) {
                 if (fs_1.default.statSync(absolute).isDirectory()) {
                     fs_1.default.cpSync(absolute, path_1.default.join(azureProjectFolderPath, file), {
                         recursive: true,

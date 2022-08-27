@@ -44,7 +44,8 @@ export default async function buildAwsLambda() {
       !absolute.includes(".vscode") &&
       !absolute.includes("routes") &&
       !absolute.includes("graphql") &&
-      !absolute.includes("events")
+      !absolute.includes("events") &&
+      !absolute.includes("hooks.js")
     ) {
       if (fs.statSync(absolute).isDirectory()) {
         fs.cpSync(absolute, path.join(commonLayerFolderPath, file), {

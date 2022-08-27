@@ -49,9 +49,12 @@ const fs_1 = __importDefault(require("fs"));
 const get_files_1 = __importDefault(require("./utils/get-files"));
 const build_azure_function_1 = __importDefault(require("./build-azure-function"));
 const build_aws_lambda_1 = __importDefault(require("./build-aws-lambda"));
+const hooksFilePath = path_1.default.join(process.cwd(), "hooks.js");
+const routesFolderPath = path_1.default.join(process.cwd(), "routes");
+const graphqlFolderPath = path_1.default.join(process.cwd(), "graphql");
+const eventsFolderPath = path_1.default.join(process.cwd(), "events");
 const spaPath = path_1.default.join(process.cwd(), process.env.spa_path || "dist");
 const initEvents = (io) => __awaiter(void 0, void 0, void 0, function* () {
-    const eventsFolderPath = path_1.default.join(process.cwd(), "events");
     const handlers = [];
     if (fs_1.default.existsSync(eventsFolderPath)) {
         const files = (0, get_files_1.default)(eventsFolderPath);
@@ -78,15 +81,17 @@ const initEvents = (io) => __awaiter(void 0, void 0, void 0, function* () {
         });
     }
 });
-const startExpressServer = () => {
+const startExpressServer = () => __awaiter(void 0, void 0, void 0, function* () {
+    let hooksModule = {};
+    if (fs_1.default.existsSync(hooksFilePath)) {
+        hooksModule = yield Promise.resolve().then(() => __importStar(require(hooksFilePath)));
+    }
     const PORT = process.env.port || 3000;
     const app = (0, express_1.default)();
     app.use((0, cors_1.default)());
     app.use(express_1.default.json({ limit: process.env.request_body_size || "100kb" }));
     app.use(express_1.default.static("public"));
     app.use(express_1.default.static(spaPath));
-    const routesFolderPath = path_1.default.join(process.cwd(), "routes");
-    const graphqlFolderPath = path_1.default.join(process.cwd(), "graphql");
     const initRoutes = () => __awaiter(void 0, void 0, void 0, function* () {
         if (fs_1.default.existsSync(graphqlFolderPath) &&
             fs_1.default.existsSync(path_1.default.join(graphqlFolderPath, "schema.gql"))) {
@@ -175,9 +180,18 @@ const startExpressServer = () => {
         app.use("/*", (req, res) => {
             res.sendFile(path_1.default.join(spaPath, "index.html"));
         });
+        if ("errorHandler" in hooksModule) {
+            app.use(hooksModule.errorHandler);
+        }
     });
+    if ("beforeServerStart" in hooksModule) {
+        hooksModule.beforeServerStart();
+    }
     const server = app.listen(PORT, () => {
         console.log(chalk_1.default.gray(`Server listening on port ${PORT}\n`));
+        if ("afterServerStart" in hooksModule) {
+            hooksModule.afterServerStart();
+        }
         initRoutes().then(() => {
             const io = new socket_io_1.Server(server, {
                 cors: {
@@ -187,7 +201,7 @@ const startExpressServer = () => {
             initEvents(io);
         });
     });
-};
+});
 const args = process.argv.slice(2);
 if (!args.length || args.includes("start")) {
     startExpressServer();
