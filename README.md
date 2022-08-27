@@ -31,7 +31,7 @@ Open package.json and add the following scripts:
 
 - `start` - Runs `starless-server start` to start a production server
 - `build` - Bundles app for azure-functions and lambda
-> [Azure Functions Core Tools](https://github.com/Azure/azure-functions-core-tools) is required for building azure-functions
+  > [Azure Functions Core Tools](https://github.com/Azure/azure-functions-core-tools) is required for building azure-functions
 
 Create two directories `routes` and `public` at the root of your application:
 
@@ -50,8 +50,8 @@ const posts = [
       "Can't Stop Thinking About Her? Here's Why You Need to Meet More Girls",
     description: "lorem ipsum",
     content:
-      "You know that feeling. There's this girl you've been chasing forever. 
-      You positively, absolutely, can't stop thinking about her. She's the most amazing woman in the world 
+      "You know that feeling. There's this girl you've been chasing forever.
+      You positively, absolutely, can't stop thinking about her. She's the most amazing woman in the world
       -- you're certain of it. There's never been another one like her.",
   },
 ];
@@ -91,6 +91,7 @@ module.exports = httpTrigger;
 ```
 
 - Lambda
+
 ```js
 const handler = async (event) => {
   return {
@@ -104,6 +105,7 @@ exports.handler = handler;
 ```
 
 - Express
+
 ```js
 module.exports = (req, res) => {
   res.json({ message: "hello from express" });
@@ -111,6 +113,20 @@ module.exports = (req, res) => {
 ```
 
 > <b>Note</b> building express style function to lambda and azure function is not supported.
+
+Express router is also supported because it internally used express middleware.
+
+```js
+const express = require("express");
+
+const router = express.Router();
+
+router.get("/", (req, res) => {
+  res.json({ message: "hello from express router" });
+});
+
+module.exports = router;
+```
 
 ## Dynamic Routes
 
@@ -124,8 +140,8 @@ const posts = [
       "Can't Stop Thinking About Her? Here's Why You Need to Meet More Girls",
     description: "lorem ipsum",
     content:
-      "You know that feeling. There's this girl you've been chasing forever. 
-      You positively, absolutely, can't stop thinking about her. She's the most amazing woman in the world 
+      "You know that feeling. There's this girl you've been chasing forever.
+      You positively, absolutely, can't stop thinking about her. She's the most amazing woman in the world
       -- you're certain of it. There's never been another one like her.",
   },
 ];
@@ -150,7 +166,6 @@ module.exports = (req, res) => {
 
 > <b>Note</b> You should not use dynamic routes with lambda and azure function. Building dynamic route lambda and azure function is not supported.
 
-
 ## Static File Serving
 
 starless-server can serve static files, like images, under a folder called `public` in the root directory. Files inside public can then be requested by your browser starting from the base URL `/`.
@@ -172,7 +187,7 @@ request_body_size=1000kb
 
 ## GraphQL API
 
-starless-server can be used as GraphQL API server. 
+starless-server can be used as GraphQL API server.
 
 Create `graphql` directory at the root of your application and then create two files `schema.gql` and `root.js` at `graphql` directory.
 
@@ -180,6 +195,7 @@ Create `graphql` directory at the root of your application and then create two f
 - `root.js` - The root provides a resolver function for each API endpoint
 
 Populate `graphql/schema.gql` with the following contents:
+
 ```gql
 type Query {
   hello: String
@@ -187,11 +203,12 @@ type Query {
 ```
 
 Populate `graphql/root.js` with the following contents:
+
 ```js
 module.exports = {
-    hello: () => {
-        return "Hello world!";
-    },
+  hello: () => {
+    return "Hello world!";
+  },
 };
 ```
 
@@ -204,20 +221,49 @@ After the set up is complete:
 
 starless-server has build in support for `socket.io`. In starless-server, an event is a function exported from a `.js` file in the `events` directory. Each event is associated with its file name. If you create `events/chat.js`, it will listen at `chat` event.
 
-Create `events` directory at the root of your application. 
+Create `events` directory at the root of your application.
 
 Example `events/chat.js`
+
 ```js
 module.exports = (io, socket) => (anotherSocketId, msg) => {
   socket.to(anotherSocketId).emit("chat", socket.id, msg);
 };
 ```
 
+## Hooks
+
+If you want to run some scripts before or after server start, create `hooks.js` at the root of your application.
+
+There are three life cycle hooks
+
+- beforeServerStart - Run before server start
+- afterServerStart - Run after server start
+- errorHandler - Express error handler
+
+```js
+exports.beforeServerStart = () => {
+  console.log("Before server start.");
+};
+
+exports.afterServerStart = () => {
+  console.log("After server start.");
+};
+
+exports.errorHandler = (err, req, res, next) => {
+  console.error(err);
+  res.status(500).json({ message: err.message });
+};
+```
+
+> <b>Note</b> Hooks are only works in starless-server. Do not use it for azure functions and lambda applications.
+
 ## Building Serverless Functions
 
 In starless-server, you can write both Azure Functions and AWS Lambda. When you want to deploy those functions to lambda or azure-functions you don't need to worry about changing azure function code to lambda or lambda code to azure function vice versa. starless-server will automatically handle those heavy task for you when building.
 
 Two options can be passed in build command:
+
 - `--azure-functions` - build for azure-function
 - `--aws-lambda` - build for lambda
 
@@ -229,6 +275,7 @@ Open package.json and add the build scripts:
   "build": "starless-server build --azure-functions --aws-lambda"
 }
 ```
+
 > [Azure Functions Core Tools](https://github.com/Azure/azure-functions-core-tools) is required for building azure-functions
 
 Run `npm run build`. Two directories `azure_functions` and `aws_lambda` will created in your application root directory.
