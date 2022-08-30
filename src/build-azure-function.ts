@@ -71,7 +71,7 @@ export default async function buildAzureFunction() {
       const routepath = route
         .replace(routesFolderPath, "")
         .replace("index.js", "")
-        .replace("js", "");
+        .replace(".js", "");
       const module = await import(route);
       const funcName = routepath.split("/")[routepath.split("/").length - 1];
 

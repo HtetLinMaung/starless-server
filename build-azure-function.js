@@ -93,7 +93,7 @@ function buildAzureFunction() {
                 const routepath = route
                     .replace(routesFolderPath, "")
                     .replace("index.js", "")
-                    .replace("js", "");
+                    .replace(".js", "");
                 const module = yield Promise.resolve().then(() => __importStar(require(route)));
                 const funcName = routepath.split("/")[routepath.split("/").length - 1];
                 const funcFolderPath = path_1.default.join(azureProjectFolderPath, funcName);
