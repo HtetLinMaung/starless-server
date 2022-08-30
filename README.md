@@ -242,11 +242,11 @@ There are three life cycle hooks
 - errorHandler - Express error handler
 
 ```js
-exports.beforeServerStart = () => {
+exports.beforeServerStart = (app) => {
   console.log("Before server start.");
 };
 
-exports.afterServerStart = () => {
+exports.afterServerStart = (server) => {
   console.log("After server start.");
 };
 
