@@ -285,9 +285,9 @@ Run `npm run build`. Two directories `azure_functions` and `aws_lambda` will cre
 
 ## Swagger
 
-starless-server allows you to serve auto-generated swagger-ui generated API docs, based on a `swagger.json` file. Create swagger.json at the root of your application. If `swagger.json` is not existed, starless-server will auto generate blank `swagger.json` file.
+starless-server allows you to serve auto-generated swagger-ui generated API docs, based on a `swagger.json` file. Create `swagger.json` at the root of your application. If `swagger.json` is not existed, starless-server will auto generate blank `swagger.json` file.
 
-## Configs
+## Config
 
 If you want to change certain settings like cors or request body size, create `config.js` at the root of your application.
 
