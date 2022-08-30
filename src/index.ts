@@ -12,11 +12,12 @@ import cors from "cors";
 import path from "path";
 import chalk from "chalk";
 import fs from "fs";
+import { isAsyncFunction } from "util/types";
+
 import swaggerUi from "swagger-ui-express";
 import getFiles from "./utils/get-files";
 import buildAzureFunction from "./build-azure-function";
 import buildAwsLambda from "./build-aws-lambda";
-import { isAsyncFunction } from "util/types";
 
 const PORT = process.env.port || 3000;
 
@@ -82,9 +83,12 @@ const initRoutes = async (app: Express, hooksModule: any = {}) => {
     console.log(chalk.yellow("Routes:\n"));
     for (const route of routes) {
       if (route.endsWith(".js")) {
-        const path = route.replace(routesFolderPath, "").split(".")[0];
-        const name = path.split("/")[path.split("/").length - 1];
-        openapi.paths[path] = {
+        const route_path = route
+          .replace(routesFolderPath, "")
+          .replace("/index.js", "")
+          .replace(".js", "");
+        const name = route_path.split("/")[route_path.split("/").length - 1];
+        openapi.paths[route_path] = {
           get: {
             tags: ["routes"],
             operationId: `get${name}`,
@@ -109,7 +113,7 @@ const initRoutes = async (app: Express, hooksModule: any = {}) => {
 
         console.log(
           `\t${chalk.yellow(name)} ${chalk.green(
-            "[GET,POST,PUT,PATCH,DELETE] http://localhost:" + PORT + path
+            "[GET,POST,PUT,PATCH,DELETE] http://localhost:" + PORT + route_path
           )}\n`
         );
 
@@ -149,9 +153,7 @@ const initRoutes = async (app: Express, hooksModule: any = {}) => {
                     )} ${chalk.cyan(msg)}`
                   ),
                 executionContext: {
-                  functionName: path
-                    ? path.split("/")[path.split("/").length - 1]
-                    : "",
+                  functionName: route_path ? name : "",
                 },
                 res: {
                   status: 200,
@@ -180,7 +182,7 @@ const initRoutes = async (app: Express, hooksModule: any = {}) => {
             expressHandler = handler;
           }
         }
-        app.use(path, expressHandler);
+        app.use(route_path, expressHandler);
       }
     }
   }
@@ -303,3 +305,9 @@ if (!args.length || args.includes("start")) {
     buildAwsLambda();
   }
 }
+
+const server = {
+  start: startExpressServer,
+};
+
+export default server;

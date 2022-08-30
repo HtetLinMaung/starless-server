@@ -1,2 +1,5 @@
 #!/usr/bin/env node
-export {};
+declare const server: {
+    start: () => Promise<void>;
+};
+export default server;

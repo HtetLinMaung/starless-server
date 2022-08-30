@@ -46,11 +46,11 @@ const cors_1 = __importDefault(require("cors"));
 const path_1 = __importDefault(require("path"));
 const chalk_1 = __importDefault(require("chalk"));
 const fs_1 = __importDefault(require("fs"));
+const types_1 = require("util/types");
 const swagger_ui_express_1 = __importDefault(require("swagger-ui-express"));
 const get_files_1 = __importDefault(require("./utils/get-files"));
 const build_azure_function_1 = __importDefault(require("./build-azure-function"));
 const build_aws_lambda_1 = __importDefault(require("./build-aws-lambda"));
-const types_1 = require("util/types");
 const PORT = process.env.port || 3000;
 const configFilePath = path_1.default.join(process.cwd(), "config.js");
 const hooksFilePath = path_1.default.join(process.cwd(), "hooks.js");
@@ -96,9 +96,12 @@ const initRoutes = (app, hooksModule = {}) => __awaiter(void 0, void 0, void 0, 
         console.log(chalk_1.default.yellow("Routes:\n"));
         for (const route of routes) {
             if (route.endsWith(".js")) {
-                const path = route.replace(routesFolderPath, "").split(".")[0];
-                const name = path.split("/")[path.split("/").length - 1];
-                openapi.paths[path] = {
+                const route_path = route
+                    .replace(routesFolderPath, "")
+                    .replace("/index.js", "")
+                    .replace(".js", "");
+                const name = route_path.split("/")[route_path.split("/").length - 1];
+                openapi.paths[route_path] = {
                     get: {
                         tags: ["routes"],
                         operationId: `get${name}`,
@@ -120,7 +123,7 @@ const initRoutes = (app, hooksModule = {}) => __awaiter(void 0, void 0, void 0, 
                         operationId: `delete${name}`,
                     },
                 };
-                console.log(`\t${chalk_1.default.yellow(name)} ${chalk_1.default.green("[GET,POST,PUT,PATCH,DELETE] http://localhost:" + PORT + path)}\n`);
+                console.log(`\t${chalk_1.default.yellow(name)} ${chalk_1.default.green("[GET,POST,PUT,PATCH,DELETE] http://localhost:" + PORT + route_path)}\n`);
                 const module = yield Promise.resolve().then(() => __importStar(require(route)));
                 let expressHandler = null;
                 if ("handler" in module) {
@@ -152,9 +155,7 @@ const initRoutes = (app, hooksModule = {}) => __awaiter(void 0, void 0, void 0, 
                             const context = {
                                 log: (msg) => console.log(`${chalk_1.default.gray(`[${new Date().toISOString()}]`)} ${chalk_1.default.cyan(msg)}`),
                                 executionContext: {
-                                    functionName: path
-                                        ? path.split("/")[path.split("/").length - 1]
-                                        : "",
+                                    functionName: route_path ? name : "",
                                 },
                                 res: {
                                     status: 200,
@@ -183,7 +184,7 @@ const initRoutes = (app, hooksModule = {}) => __awaiter(void 0, void 0, void 0, 
                         expressHandler = handler;
                     }
                 }
-                app.use(path, expressHandler);
+                app.use(route_path, expressHandler);
             }
         }
     }
@@ -291,3 +292,7 @@ else if (args.includes("build")) {
         (0, build_aws_lambda_1.default)();
     }
 }
+const server = {
+    start: startExpressServer,
+};
+exports.default = server;

@@ -74,7 +74,8 @@ function buildAwsLambda() {
                 !absolute.includes("routes") &&
                 !absolute.includes("graphql") &&
                 !absolute.includes("events") &&
-                !absolute.includes("hooks.js")) {
+                !absolute.includes("hooks.js") &&
+                !absolute.includes("config.js")) {
                 if (fs_1.default.statSync(absolute).isDirectory()) {
                     fs_1.default.cpSync(absolute, path_1.default.join(commonLayerFolderPath, file), {
                         recursive: true,
@@ -109,7 +110,10 @@ function buildAwsLambda() {
         const routes = (0, get_files_1.default)(routesFolderPath);
         for (const route of routes) {
             if (route.endsWith(".js")) {
-                const routepath = route.replace(routesFolderPath, "").split(".")[0];
+                const routepath = route
+                    .replace(routesFolderPath, "")
+                    .replace("index.js", "")
+                    .replace(".js", "");
                 const module = yield Promise.resolve().then(() => __importStar(require(route)));
                 const funcName = routepath.split("/")[routepath.split("/").length - 1];
                 const funcFolderPath = path_1.default.join(awsProjectFolderPath, funcName);

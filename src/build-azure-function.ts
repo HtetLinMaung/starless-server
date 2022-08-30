@@ -32,7 +32,8 @@ export default async function buildAzureFunction() {
       !absolute.includes("routes") &&
       !absolute.includes("graphql") &&
       !absolute.includes("events") &&
-      !absolute.includes("hooks.js")
+      !absolute.includes("hooks.js") &&
+      !absolute.includes("config.js")
     ) {
       if (fs.statSync(absolute).isDirectory()) {
         fs.cpSync(absolute, path.join(azureProjectFolderPath, file), {
@@ -67,7 +68,10 @@ export default async function buildAzureFunction() {
   const routes = getFiles(routesFolderPath);
   for (const route of routes) {
     if (route.endsWith(".js")) {
-      const routepath = route.replace(routesFolderPath, "").split(".")[0];
+      const routepath = route
+        .replace(routesFolderPath, "")
+        .replace("index.js", "")
+        .replace("js", "");
       const module = await import(route);
       const funcName = routepath.split("/")[routepath.split("/").length - 1];
 
