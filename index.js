@@ -46,15 +46,38 @@ const cors_1 = __importDefault(require("cors"));
 const path_1 = __importDefault(require("path"));
 const chalk_1 = __importDefault(require("chalk"));
 const fs_1 = __importDefault(require("fs"));
+const swagger_ui_express_1 = __importDefault(require("swagger-ui-express"));
 const get_files_1 = __importDefault(require("./utils/get-files"));
 const build_azure_function_1 = __importDefault(require("./build-azure-function"));
 const build_aws_lambda_1 = __importDefault(require("./build-aws-lambda"));
 const types_1 = require("util/types");
 const PORT = process.env.port || 3000;
+const configFilePath = path_1.default.join(process.cwd(), "config.js");
 const hooksFilePath = path_1.default.join(process.cwd(), "hooks.js");
 const routesFolderPath = path_1.default.join(process.cwd(), "routes");
 const graphqlFolderPath = path_1.default.join(process.cwd(), "graphql");
 const eventsFolderPath = path_1.default.join(process.cwd(), "events");
+const swaggerFilePath = path_1.default.join(process.cwd(), "swagger.json");
+const openapi = {
+    openapi: "3.0.3",
+    info: {
+        title: "OpenAPI 3.0",
+        description: "",
+        version: "1.0.11",
+    },
+    servers: [
+        {
+            url: "http://localhost:" + PORT,
+        },
+    ],
+    tags: [
+        {
+            name: "routes",
+            description: "Everything about your Routes",
+        },
+    ],
+    paths: {},
+};
 const spaPath = path_1.default.join(process.cwd(), process.env.spa_path || "dist");
 const initRoutes = (app, hooksModule = {}) => __awaiter(void 0, void 0, void 0, function* () {
     if (fs_1.default.existsSync(graphqlFolderPath) &&
@@ -74,7 +97,30 @@ const initRoutes = (app, hooksModule = {}) => __awaiter(void 0, void 0, void 0, 
         for (const route of routes) {
             if (route.endsWith(".js")) {
                 const path = route.replace(routesFolderPath, "").split(".")[0];
-                console.log(`\t${chalk_1.default.yellow(path.split("/")[path.split("/").length - 1])} ${chalk_1.default.green("[GET,POST,PUT,PATCH,DELETE] http://localhost:" + PORT + path)}\n`);
+                const name = path.split("/")[path.split("/").length - 1];
+                openapi.paths[path] = {
+                    get: {
+                        tags: ["routes"],
+                        operationId: `get${name}`,
+                    },
+                    post: {
+                        tags: ["routes"],
+                        operationId: `post${name}`,
+                    },
+                    put: {
+                        tags: ["routes"],
+                        operationId: `put${name}`,
+                    },
+                    patch: {
+                        tags: ["routes"],
+                        operationId: `patch${name}`,
+                    },
+                    delete: {
+                        tags: ["routes"],
+                        operationId: `delete${name}`,
+                    },
+                };
+                console.log(`\t${chalk_1.default.yellow(name)} ${chalk_1.default.green("[GET,POST,PUT,PATCH,DELETE] http://localhost:" + PORT + path)}\n`);
                 const module = yield Promise.resolve().then(() => __importStar(require(route)));
                 let expressHandler = null;
                 if ("handler" in module) {
@@ -141,6 +187,12 @@ const initRoutes = (app, hooksModule = {}) => __awaiter(void 0, void 0, void 0, 
             }
         }
     }
+    if (!fs_1.default.existsSync(swaggerFilePath)) {
+        fs_1.default.writeFileSync(swaggerFilePath, JSON.stringify(openapi, null, 2));
+    }
+    const swaggerDocument = yield Promise.resolve().then(() => __importStar(require(swaggerFilePath)));
+    app.use("/swagger", swagger_ui_express_1.default.serve, swagger_ui_express_1.default.setup(swaggerDocument));
+    console.log(`\t${chalk_1.default.yellow("swagger")} ${chalk_1.default.green("[GET] http://localhost:" + PORT + "/swagger")}\n`);
     app.use("/*", (req, res) => {
         res.sendFile(path_1.default.join(spaPath, "index.html"));
     });
@@ -174,13 +226,28 @@ const initEvents = (io) => __awaiter(void 0, void 0, void 0, function* () {
     });
 });
 const startExpressServer = () => __awaiter(void 0, void 0, void 0, function* () {
+    let configs = {};
     let hooksModule = {};
     if (fs_1.default.existsSync(hooksFilePath)) {
         hooksModule = yield Promise.resolve().then(() => __importStar(require(hooksFilePath)));
     }
+    if (fs_1.default.existsSync(configFilePath)) {
+        const configModule = yield Promise.resolve().then(() => __importStar(require(configFilePath)));
+        configs = configModule.default;
+    }
     const app = (0, express_1.default)();
-    app.use((0, cors_1.default)());
-    app.use(express_1.default.json({ limit: process.env.request_body_size || "100kb" }));
+    if ("cors" in configs) {
+        app.use((0, cors_1.default)(configs.cors));
+    }
+    else {
+        app.use((0, cors_1.default)());
+    }
+    if ("bodyParser" in configs) {
+        app.use(express_1.default.json(configs.bodyParser));
+    }
+    else {
+        app.use(express_1.default.json({ limit: process.env.request_body_size || "100kb" }));
+    }
     app.use(express_1.default.static("public"));
     app.use(express_1.default.static(spaPath));
     if ("beforeServerStart" in hooksModule) {

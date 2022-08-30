@@ -12,6 +12,7 @@ import cors from "cors";
 import path from "path";
 import chalk from "chalk";
 import fs from "fs";
+import swaggerUi from "swagger-ui-express";
 import getFiles from "./utils/get-files";
 import buildAzureFunction from "./build-azure-function";
 import buildAwsLambda from "./build-aws-lambda";
@@ -19,10 +20,32 @@ import { isAsyncFunction } from "util/types";
 
 const PORT = process.env.port || 3000;
 
+const configFilePath = path.join(process.cwd(), "config.js");
 const hooksFilePath = path.join(process.cwd(), "hooks.js");
 const routesFolderPath = path.join(process.cwd(), "routes");
 const graphqlFolderPath = path.join(process.cwd(), "graphql");
 const eventsFolderPath = path.join(process.cwd(), "events");
+const swaggerFilePath = path.join(process.cwd(), "swagger.json");
+const openapi = {
+  openapi: "3.0.3",
+  info: {
+    title: "OpenAPI 3.0",
+    description: "",
+    version: "1.0.11",
+  },
+  servers: [
+    {
+      url: "http://localhost:" + PORT,
+    },
+  ],
+  tags: [
+    {
+      name: "routes",
+      description: "Everything about your Routes",
+    },
+  ],
+  paths: {},
+};
 
 const spaPath = path.join(process.cwd(), process.env.spa_path || "dist");
 
@@ -60,11 +83,32 @@ const initRoutes = async (app: Express, hooksModule: any = {}) => {
     for (const route of routes) {
       if (route.endsWith(".js")) {
         const path = route.replace(routesFolderPath, "").split(".")[0];
+        const name = path.split("/")[path.split("/").length - 1];
+        openapi.paths[path] = {
+          get: {
+            tags: ["routes"],
+            operationId: `get${name}`,
+          },
+          post: {
+            tags: ["routes"],
+            operationId: `post${name}`,
+          },
+          put: {
+            tags: ["routes"],
+            operationId: `put${name}`,
+          },
+          patch: {
+            tags: ["routes"],
+            operationId: `patch${name}`,
+          },
+          delete: {
+            tags: ["routes"],
+            operationId: `delete${name}`,
+          },
+        };
 
         console.log(
-          `\t${chalk.yellow(
-            path.split("/")[path.split("/").length - 1]
-          )} ${chalk.green(
+          `\t${chalk.yellow(name)} ${chalk.green(
             "[GET,POST,PUT,PATCH,DELETE] http://localhost:" + PORT + path
           )}\n`
         );
@@ -141,6 +185,17 @@ const initRoutes = async (app: Express, hooksModule: any = {}) => {
     }
   }
 
+  if (!fs.existsSync(swaggerFilePath)) {
+    fs.writeFileSync(swaggerFilePath, JSON.stringify(openapi, null, 2));
+  }
+  const swaggerDocument = await import(swaggerFilePath);
+  app.use("/swagger", swaggerUi.serve, swaggerUi.setup(swaggerDocument));
+  console.log(
+    `\t${chalk.yellow("swagger")} ${chalk.green(
+      "[GET] http://localhost:" + PORT + "/swagger"
+    )}\n`
+  );
+
   app.use("/*", (req: Request, res: Response) => {
     res.sendFile(path.join(spaPath, "index.html"));
   });
@@ -180,15 +235,29 @@ const initEvents = async (io) => {
 };
 
 const startExpressServer = async () => {
+  let configs: any = {};
   let hooksModule: any = {};
   if (fs.existsSync(hooksFilePath)) {
     hooksModule = await import(hooksFilePath);
   }
-
+  if (fs.existsSync(configFilePath)) {
+    const configModule = await import(configFilePath);
+    configs = configModule.default;
+  }
   const app = express();
 
-  app.use(cors());
-  app.use(express.json({ limit: process.env.request_body_size || "100kb" }));
+  if ("cors" in configs) {
+    app.use(cors(configs.cors));
+  } else {
+    app.use(cors());
+  }
+
+  if ("bodyParser" in configs) {
+    app.use(express.json(configs.bodyParser));
+  } else {
+    app.use(express.json({ limit: process.env.request_body_size || "100kb" }));
+  }
+
   app.use(express.static("public"));
 
   app.use(express.static(spaPath));

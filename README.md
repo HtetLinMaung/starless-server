@@ -282,3 +282,22 @@ Run `npm run build`. Two directories `azure_functions` and `aws_lambda` will cre
 
 - For deploying azure function see more at [Azure Function](https://docs.microsoft.com/en-us/azure/azure-functions/create-first-function-vs-code-node#deploy-the-project-to-azure)
 - For lambda you must manually copy codes from aws_lambda directory and paste at lambda functions console. Files not from `routes` directory are placed and zipped in `layers/common/common.zip`. You must upload `common.zip` as lambda layer. See more at [Lambda Layers](https://docs.aws.amazon.com/lambda/latest/dg/configuration-layers.html)
+
+## Swagger
+
+starless-server allows you to serve auto-generated swagger-ui generated API docs, based on a `swagger.json` file. Create swagger.json at the root of your application. If `swagger.json` is not existed, starless-server will auto generate blank `swagger.json` file.
+
+## Configs
+
+If you want to change certain settings like cors or request body size, create `config.js` at the root of your application.
+
+```js
+module.exports = {
+  cors: {
+    origin: "*", // default cors origin
+  },
+  bodyParser: {
+    limit: "100kb", // default limit
+  },
+};
+```
