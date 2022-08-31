@@ -100,7 +100,10 @@ export default async function buildAwsLambda() {
         "lambda"
       );
 
-      const funcName = route_path.split("/").join("_");
+      const funcName = route_path
+        .split("/")
+        .filter((r) => r.trim())
+        .join("_");
       const module = await import(route);
 
       const funcFolderPath = path.join(awsProjectFolderPath, funcName);
