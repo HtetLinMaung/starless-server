@@ -95,12 +95,12 @@ export default async function buildAwsLambda() {
   const routes = getFiles(routesFolderPath);
   for (const route of routes) {
     if (route.endsWith(".js")) {
-      const { func_name } = parseRoute(
+      const { func_name, route_path } = parseRoute(
         route.replace(routesFolderPath, ""),
         "lambda"
       );
 
-      const funcName = func_name;
+      const funcName = route_path.split("/").join("_");
       const module = await import(route);
 
       const funcFolderPath = path.join(awsProjectFolderPath, funcName);
