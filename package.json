@@ -6,7 +6,8 @@
   "scripts": {
     "start": "tsc && node index",
     "dev": "nodemon index",
-    "build": "tsc & rm -rf swagger.json"
+    "build": "tsc && rm -rf swagger.json",
+    "release": "tsc && npm publish"
   },
   "bin": "./index.js",
   "keywords": [],
