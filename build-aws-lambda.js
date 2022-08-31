@@ -111,8 +111,8 @@ function buildAwsLambda() {
         const routes = (0, get_files_1.default)(routesFolderPath);
         for (const route of routes) {
             if (route.endsWith(".js")) {
-                const { func_name } = (0, parse_route_1.default)(route.replace(routesFolderPath, ""), "lambda");
-                const funcName = func_name;
+                const { func_name, route_path } = (0, parse_route_1.default)(route.replace(routesFolderPath, ""), "lambda");
+                const funcName = route_path.split("/").join("_");
                 const module = yield Promise.resolve().then(() => __importStar(require(route)));
                 const funcFolderPath = path_1.default.join(awsProjectFolderPath, funcName);
                 if (!fs_1.default.existsSync(funcFolderPath)) {

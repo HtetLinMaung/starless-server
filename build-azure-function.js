@@ -93,7 +93,7 @@ function buildAzureFunction() {
             if (route.endsWith(".js")) {
                 const { route_path, func_name } = (0, parse_route_1.default)(route.replace(routesFolderPath, ""), "function");
                 const routepath = route_path;
-                const funcName = func_name;
+                const funcName = route_path.split("/").join("_");
                 const module = yield Promise.resolve().then(() => __importStar(require(route)));
                 const funcFolderPath = path_1.default.join(azureProjectFolderPath, funcName);
                 if (!fs_1.default.existsSync(funcFolderPath)) {
