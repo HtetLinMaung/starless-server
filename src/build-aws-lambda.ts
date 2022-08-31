@@ -3,6 +3,7 @@ import fs from "fs";
 import util from "util";
 import zip from "adm-zip";
 import getFiles from "./utils/get-files";
+import parseRoute from "./utils/parse-route";
 
 const exec = util.promisify(require("child_process").exec);
 
@@ -94,12 +95,13 @@ export default async function buildAwsLambda() {
   const routes = getFiles(routesFolderPath);
   for (const route of routes) {
     if (route.endsWith(".js")) {
-      const routepath = route
-        .replace(routesFolderPath, "")
-        .replace("index.js", "")
-        .replace(".js", "");
+      const { func_name } = parseRoute(
+        route.replace(routesFolderPath, ""),
+        "lambda"
+      );
+
+      const funcName = func_name;
       const module = await import(route);
-      const funcName = routepath.split("/")[routepath.split("/").length - 1];
 
       const funcFolderPath = path.join(awsProjectFolderPath, funcName);
       if (!fs.existsSync(funcFolderPath)) {
@@ -122,6 +124,7 @@ const handler = async (event) => {
       functionName:
         event.path ? event.path.split("/")[event.path.split("/").length - 1]: "",
     },
+    bindingData: req.params,
     res: {
       status: 200,
       body: "",

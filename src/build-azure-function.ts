@@ -2,6 +2,7 @@ import path from "path";
 import fs from "fs";
 import util from "util";
 import getFiles from "./utils/get-files";
+import parseRoute from "./utils/parse-route";
 
 const exec = util.promisify(require("child_process").exec);
 
@@ -68,12 +69,13 @@ export default async function buildAzureFunction() {
   const routes = getFiles(routesFolderPath);
   for (const route of routes) {
     if (route.endsWith(".js")) {
-      const routepath = route
-        .replace(routesFolderPath, "")
-        .replace("index.js", "")
-        .replace(".js", "");
+      const { route_path, func_name } = parseRoute(
+        route.replace(routesFolderPath, ""),
+        "function"
+      );
+      const routepath = route_path;
+      const funcName = func_name;
       const module = await import(route);
-      const funcName = routepath.split("/")[routepath.split("/").length - 1];
 
       const funcFolderPath = path.join(azureProjectFolderPath, funcName);
       if (!fs.existsSync(funcFolderPath)) {

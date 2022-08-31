@@ -18,6 +18,7 @@ import swaggerUi from "swagger-ui-express";
 import getFiles from "./utils/get-files";
 import buildAzureFunction from "./build-azure-function";
 import buildAwsLambda from "./build-aws-lambda";
+import parseRoute from "./utils/parse-route";
 
 const PORT = process.env.port || 3000;
 
@@ -83,11 +84,11 @@ const initRoutes = async (app: Express, hooksModule: any = {}) => {
     console.log(chalk.yellow("Routes:\n"));
     for (const route of routes) {
       if (route.endsWith(".js")) {
-        const route_path = route
-          .replace(routesFolderPath, "")
-          .replace("/index.js", "")
-          .replace(".js", "");
-        const name = route_path.split("/")[route_path.split("/").length - 1];
+        const { route_path, func_name } = parseRoute(
+          route.replace(routesFolderPath, "")
+        );
+
+        const name = func_name;
         openapi.paths[route_path] = {
           get: {
             tags: ["routes"],
@@ -155,6 +156,7 @@ const initRoutes = async (app: Express, hooksModule: any = {}) => {
                 executionContext: {
                   functionName: route_path ? name : "",
                 },
+                bindingData: req.params,
                 res: {
                   status: 200,
                   body: "",

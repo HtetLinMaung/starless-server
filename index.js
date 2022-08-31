@@ -51,6 +51,7 @@ const swagger_ui_express_1 = __importDefault(require("swagger-ui-express"));
 const get_files_1 = __importDefault(require("./utils/get-files"));
 const build_azure_function_1 = __importDefault(require("./build-azure-function"));
 const build_aws_lambda_1 = __importDefault(require("./build-aws-lambda"));
+const parse_route_1 = __importDefault(require("./utils/parse-route"));
 const PORT = process.env.port || 3000;
 const configFilePath = path_1.default.join(process.cwd(), "config.js");
 const hooksFilePath = path_1.default.join(process.cwd(), "hooks.js");
@@ -96,11 +97,8 @@ const initRoutes = (app, hooksModule = {}) => __awaiter(void 0, void 0, void 0, 
         console.log(chalk_1.default.yellow("Routes:\n"));
         for (const route of routes) {
             if (route.endsWith(".js")) {
-                const route_path = route
-                    .replace(routesFolderPath, "")
-                    .replace("/index.js", "")
-                    .replace(".js", "");
-                const name = route_path.split("/")[route_path.split("/").length - 1];
+                const { route_path, func_name } = (0, parse_route_1.default)(route.replace(routesFolderPath, ""));
+                const name = func_name;
                 openapi.paths[route_path] = {
                     get: {
                         tags: ["routes"],
@@ -157,6 +155,7 @@ const initRoutes = (app, hooksModule = {}) => __awaiter(void 0, void 0, void 0, 
                                 executionContext: {
                                     functionName: route_path ? name : "",
                                 },
+                                bindingData: req.params,
                                 res: {
                                     status: 200,
                                     body: "",

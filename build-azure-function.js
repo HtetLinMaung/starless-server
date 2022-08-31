@@ -39,6 +39,7 @@ const path_1 = __importDefault(require("path"));
 const fs_1 = __importDefault(require("fs"));
 const util_1 = __importDefault(require("util"));
 const get_files_1 = __importDefault(require("./utils/get-files"));
+const parse_route_1 = __importDefault(require("./utils/parse-route"));
 const exec = util_1.default.promisify(require("child_process").exec);
 const rootPath = process.cwd();
 const routesFolderPath = path_1.default.join(rootPath, "routes");
@@ -90,12 +91,10 @@ function buildAzureFunction() {
         const routes = (0, get_files_1.default)(routesFolderPath);
         for (const route of routes) {
             if (route.endsWith(".js")) {
-                const routepath = route
-                    .replace(routesFolderPath, "")
-                    .replace("index.js", "")
-                    .replace(".js", "");
+                const { route_path, func_name } = (0, parse_route_1.default)(route.replace(routesFolderPath, ""), "function");
+                const routepath = route_path;
+                const funcName = func_name;
                 const module = yield Promise.resolve().then(() => __importStar(require(route)));
-                const funcName = routepath.split("/")[routepath.split("/").length - 1];
                 const funcFolderPath = path_1.default.join(azureProjectFolderPath, funcName);
                 if (!fs_1.default.existsSync(funcFolderPath)) {
                     fs_1.default.mkdirSync(funcFolderPath);

@@ -40,6 +40,7 @@ const fs_1 = __importDefault(require("fs"));
 const util_1 = __importDefault(require("util"));
 const adm_zip_1 = __importDefault(require("adm-zip"));
 const get_files_1 = __importDefault(require("./utils/get-files"));
+const parse_route_1 = __importDefault(require("./utils/parse-route"));
 const exec = util_1.default.promisify(require("child_process").exec);
 const rootPath = process.cwd();
 const routesFolderPath = path_1.default.join(rootPath, "routes");
@@ -110,12 +111,9 @@ function buildAwsLambda() {
         const routes = (0, get_files_1.default)(routesFolderPath);
         for (const route of routes) {
             if (route.endsWith(".js")) {
-                const routepath = route
-                    .replace(routesFolderPath, "")
-                    .replace("index.js", "")
-                    .replace(".js", "");
+                const { func_name } = (0, parse_route_1.default)(route.replace(routesFolderPath, ""), "lambda");
+                const funcName = func_name;
                 const module = yield Promise.resolve().then(() => __importStar(require(route)));
-                const funcName = routepath.split("/")[routepath.split("/").length - 1];
                 const funcFolderPath = path_1.default.join(awsProjectFolderPath, funcName);
                 if (!fs_1.default.existsSync(funcFolderPath)) {
                     fs_1.default.mkdirSync(funcFolderPath);
@@ -133,6 +131,7 @@ const handler = async (event) => {
       functionName:
         event.path ? event.path.split("/")[event.path.split("/").length - 1]: "",
     },
+    bindingData: req.params,
     res: {
       status: 200,
       body: "",
