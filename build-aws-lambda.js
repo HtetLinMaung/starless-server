@@ -134,7 +134,7 @@ const handler = async (event) => {
       functionName:
         event.path ? event.path.split("/")[event.path.split("/").length - 1]: "",
     },
-    bindingData: req.params,
+    bindingData: event.pathParameters,
     res: {
       status: 200,
       body: "",
