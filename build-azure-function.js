@@ -154,7 +154,7 @@ function buildAzureFunction() {
         status: 200,
       }
       const json = (obj) => {
-        context.res['body] = obj;
+        context.res['body'] = obj;
       }
       const send = (data) => {
         contest.res['body'] = data;
@@ -168,7 +168,7 @@ function buildAzureFunction() {
         status,
         send,
       }
-      if (handler.toString().includes('async')) {
+      if (expressHandler.toString().includes('async')) {
         await expressHandler(request, response, (sth) => {});
       } else {
         expressHandler(request, response, (sth) => {});

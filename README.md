@@ -112,7 +112,7 @@ module.exports = (req, res) => {
 };
 ```
 
-> <b>Note</b> building express style function to lambda and azure function is not supported.
+> <b>Note</b> Express next middleware function is not supported in serverless functions.
 
 Express router is also supported because it internally used express middleware.
 

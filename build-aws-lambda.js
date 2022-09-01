@@ -123,9 +123,13 @@ function buildAwsLambda() {
                 }
                 fs_1.default.cpSync(route, path_1.default.join(funcFolderPath, "index.js"));
                 let fileContent = fs_1.default.readFileSync(path_1.default.join(funcFolderPath, "index.js"), "utf8");
-                if ("default" in module) {
+                if ("default" in module &&
+                    module.default.toString().includes("context")) {
                     fileContent =
-                        fileContent.replace("exports.default = httpTrigger;", "") +
+                        fileContent
+                            .replace("exports.default = httpTrigger;", "")
+                            .replace("module.exports = httpTrigger;", "")
+                            .replace("module.exports =", "const httpTrigger =") +
                             `
 const handler = async (event) => {
   const context = {
@@ -155,6 +159,49 @@ const handler = async (event) => {
     headers,
     body: typeof body == "object" ? JSON.stringify(body) : body,
   };
+};
+
+exports.handler = handler;
+`;
+                }
+                else {
+                    fileContent =
+                        fileContent
+                            .replace("exports.default =", "const expressHandler =")
+                            .replace("module.exports =", "const expressHandler =") +
+                            `
+const handler = async (event) => {
+  const request = {
+    path: event.path,
+    method: event.httpMethod,
+    headers: event.headers,
+    query: event.queryStringParameters,
+    params: event.pathParameters,
+    body: event.body ? JSON.parse(event.body): null,
+  };
+  let lambdaRes = {
+    statusCode: 200
+  }
+  const json = (obj) => {
+    lambdaRes['body'] = JSON.stringify(obj || {});
+  }
+  const send = (data) => {
+    lambdaRes['body'] = typeof data == 'object' ? JSON.stringify(data) : data;
+  }
+  const status = (code) => {
+    return {json, send};
+  }
+  const response = {
+    json,
+    status,
+    send,
+  }
+  if (expressHandler.toString().includes('async')) {
+    await expressHandler(request, response, (sth) => {});
+  } else {
+    expressHandler(request, response, (sth) => {});
+  }
+  return lambdaRes;
 };
 
 exports.handler = handler;
