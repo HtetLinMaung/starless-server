@@ -118,7 +118,7 @@ function buildAzureFunction() {
         httpMethod: req.method,
         headers: req.headers,
         queryStringParameters: req.query,
-        pathParameters: req.params,
+        pathParameters: context.bindingData,
         body: req.body ? JSON.stringify(req.body): null,
       };
       const lambdaResponse = await handler(event);
@@ -127,6 +127,52 @@ function buildAzureFunction() {
         body: JSON.parse(lambdaResponse.body),
         headers: lambdaResponse.headers,
       };
+    };
+    
+    module.exports = httpTrigger;`;
+                }
+                else if (!module.default.toString().includes("context")) {
+                    fileContent =
+                        fileContent
+                            .replace("exports.default =", "const expressHandler =")
+                            .replace("module.exports =", "const expressHandler =") +
+                            `
+    const httpTrigger = async function (
+      context,
+      req
+    ) {
+      context.log("HTTP trigger function processed a request.");
+      const request = {
+        path: req.url,
+        method: req.method,
+        headers: req.headers,
+        query: req.query,
+        params: req.bindingData,
+        body: req.body,
+      };
+      context.res = {
+        status: 200,
+      }
+      const json = (obj) => {
+        context.res['body] = obj;
+      }
+      const send = (data) => {
+        contest.res['body'] = data;
+      }
+      const status = (code) => {
+        context.res.status = code;
+        return {json, send};
+      }
+      const response = {
+        json,
+        status,
+        send,
+      }
+      if (handler.toString().includes('async')) {
+        await expressHandler(request, response, (sth) => {});
+      } else {
+        expressHandler(request, response, (sth) => {});
+      }
     };
     
     module.exports = httpTrigger;`;
