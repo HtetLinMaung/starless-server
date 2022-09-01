@@ -174,7 +174,12 @@ const handler = async (event) => {
     body: event.body ? JSON.parse(event.body): null,
   };
   let lambdaRes = {
-    statusCode: 200
+    statusCode: 200,
+    headers: {
+      "Access-Control-Allow-Headers": "Content-Type",
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Methods": "OPTIONS,POST,GET",
+    },
   }
   const json = (obj) => {
     lambdaRes['body'] = JSON.stringify(obj || {});
@@ -183,6 +188,7 @@ const handler = async (event) => {
     lambdaRes['body'] = typeof data == 'object' ? JSON.stringify(data) : data;
   }
   const status = (code) => {
+    lambdaRes.statusCode = code;
     return {json, send};
   }
   const response = {
