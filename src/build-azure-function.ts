@@ -74,10 +74,7 @@ export default async function buildAzureFunction() {
         "function"
       );
       const routepath = route_path;
-      const funcName = route_path
-        .split("/")
-        .filter((r) => r.trim())
-        .join("_");
+      const funcName = func_name;
       const module = await import(route);
 
       const funcFolderPath = path.join(azureProjectFolderPath, funcName);
