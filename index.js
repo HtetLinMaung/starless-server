@@ -193,9 +193,11 @@ const initRoutes = (app, hooksModule = {}) => __awaiter(void 0, void 0, void 0, 
     const swaggerDocument = yield Promise.resolve().then(() => __importStar(require(swaggerFilePath)));
     app.use("/swagger", swagger_ui_express_1.default.serve, swagger_ui_express_1.default.setup(swaggerDocument));
     console.log(`\t${chalk_1.default.yellow("swagger")} ${chalk_1.default.green("[GET] http://localhost:" + PORT + "/swagger")}\n`);
-    app.use("/*", (req, res) => {
-        res.sendFile(path_1.default.join(spaPath, "index.html"));
-    });
+    if (fs_1.default.existsSync(spaPath)) {
+        app.use("/*", (req, res) => {
+            res.sendFile(path_1.default.join(spaPath, "index.html"));
+        });
+    }
     if ("errorHandler" in hooksModule) {
         app.use(hooksModule.errorHandler);
     }

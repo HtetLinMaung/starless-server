@@ -200,9 +200,11 @@ const initRoutes = async (app: Express, hooksModule: any = {}) => {
     )}\n`
   );
 
-  app.use("/*", (req: Request, res: Response) => {
-    res.sendFile(path.join(spaPath, "index.html"));
-  });
+  if (fs.existsSync(spaPath)) {
+    app.use("/*", (req: Request, res: Response) => {
+      res.sendFile(path.join(spaPath, "index.html"));
+    });
+  }
 
   if ("errorHandler" in hooksModule) {
     app.use(hooksModule.errorHandler);
