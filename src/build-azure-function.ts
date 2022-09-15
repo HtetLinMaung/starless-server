@@ -34,7 +34,11 @@ export default async function buildAzureFunction() {
       !absolute.includes("graphql") &&
       !absolute.includes("events") &&
       !absolute.includes("hooks.js") &&
-      !absolute.includes("config.js")
+      !absolute.includes("config.js") &&
+      !absolute.includes(".git") &&
+      !absolute.includes(".gitignore") &&
+      !absolute.includes("Dockerfile") &&
+      !absolute.includes(".dockerignore")
     ) {
       if (fs.statSync(absolute).isDirectory()) {
         fs.cpSync(absolute, path.join(azureProjectFolderPath, file), {

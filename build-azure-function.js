@@ -65,7 +65,11 @@ function buildAzureFunction() {
                 !absolute.includes("graphql") &&
                 !absolute.includes("events") &&
                 !absolute.includes("hooks.js") &&
-                !absolute.includes("config.js")) {
+                !absolute.includes("config.js") &&
+                !absolute.includes(".git") &&
+                !absolute.includes(".gitignore") &&
+                !absolute.includes("Dockerfile") &&
+                !absolute.includes(".dockerignore")) {
                 if (fs_1.default.statSync(absolute).isDirectory()) {
                     fs_1.default.cpSync(absolute, path_1.default.join(azureProjectFolderPath, file), {
                         recursive: true,
