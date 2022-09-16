@@ -52,6 +52,7 @@ const get_files_1 = __importDefault(require("./utils/get-files"));
 const build_azure_function_1 = __importDefault(require("./build-azure-function"));
 const build_aws_lambda_1 = __importDefault(require("./build-aws-lambda"));
 const parse_route_1 = __importDefault(require("./utils/parse-route"));
+let io;
 const PORT = process.env.port || 3000;
 const configFilePath = path_1.default.join(process.cwd(), "config.js");
 const hooksFilePath = path_1.default.join(process.cwd(), "hooks.js");
@@ -272,7 +273,7 @@ const startExpressServer = () => __awaiter(void 0, void 0, void 0, function* () 
         }
         yield initRoutes(app, hooksModule);
         if (fs_1.default.existsSync(eventsFolderPath)) {
-            const io = new socket_io_1.Server(server, {
+            io = new socket_io_1.Server(server, {
                 cors: {
                     origin: "*",
                 },
@@ -295,5 +296,11 @@ else if (args.includes("build")) {
 }
 const server = {
     start: startExpressServer,
+    getIO: () => {
+        if (!io) {
+            throw new Error("Socket.IO is not initialized!");
+        }
+        return io;
+    },
 };
 exports.default = server;

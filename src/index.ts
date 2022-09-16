@@ -20,6 +20,8 @@ import buildAzureFunction from "./build-azure-function";
 import buildAwsLambda from "./build-aws-lambda";
 import parseRoute from "./utils/parse-route";
 
+let io: any;
+
 const PORT = process.env.port || 3000;
 
 const configFilePath = path.join(process.cwd(), "config.js");
@@ -286,7 +288,7 @@ const startExpressServer = async () => {
     }
     await initRoutes(app, hooksModule);
     if (fs.existsSync(eventsFolderPath)) {
-      const io = new Server(server, {
+      io = new Server(server, {
         cors: {
           origin: "*",
         },
@@ -312,6 +314,12 @@ if (!args.length || args.includes("start")) {
 
 const server = {
   start: startExpressServer,
+  getIO: () => {
+    if (!io) {
+      throw new Error("Socket.IO is not initialized!");
+    }
+    return io;
+  },
 };
 
 export default server;
