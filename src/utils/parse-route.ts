@@ -1,10 +1,12 @@
 export default function parseRoute(route: string, mode = "express") {
   let route_path = route
-    .replace(process.platform == "win32" ? "\\index.js" : "/index.js", "")
+    .split(process.platform == "win32" ? "\\" : "/")
+    .join("/")
+    .replace("/index.js", "")
     .replace(".js", "");
   if (mode == "function") {
     route_path = route_path
-      .split(process.platform == "win32" ? "\\" : "/")
+      .split("/")
       .map((r) => {
         if (r.startsWith(":")) {
           return `{${r.replace(":", "")}}`;
@@ -14,7 +16,7 @@ export default function parseRoute(route: string, mode = "express") {
       .join("/");
   }
   const name = route_path
-    .split(process.platform == "win32" ? "\\" : "/")
+    .split("/")
     .filter((r) => r.trim())
     .join("_");
   return {

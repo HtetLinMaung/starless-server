@@ -1,7 +1,11 @@
 "use strict";
 Object.defineProperty(exports, "__esModule", { value: true });
 function parseRoute(route, mode = "express") {
-    let route_path = route.replace("/index.js", "").replace(".js", "");
+    let route_path = route
+        .split(process.platform == "win32" ? "\\" : "/")
+        .join("/")
+        .replace("/index.js", "")
+        .replace(".js", "");
     if (mode == "function") {
         route_path = route_path
             .split("/")
