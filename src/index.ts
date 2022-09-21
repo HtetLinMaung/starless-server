@@ -218,9 +218,8 @@ const initEvents = async (io) => {
   const files = getFiles(eventsFolderPath);
   for (const file of files.filter((f) => f.endsWith(".js"))) {
     const module = await import(file);
-    const eventname = file
-      .split("/")
-      [file.split("/").length - 1].replace(".js", "");
+    const filearr = file.split(process.platform == "win32" ? "\\" : "/");
+    const eventname = filearr[filearr.length - 1].replace(".js", "");
     handlers.push({
       eventname,
       handler: module.default,
