@@ -208,8 +208,8 @@ const initEvents = (io) => __awaiter(void 0, void 0, void 0, function* () {
     const files = (0, get_files_1.default)(eventsFolderPath);
     for (const file of files.filter((f) => f.endsWith(".js"))) {
         const module = yield Promise.resolve().then(() => __importStar(require(file)));
-        const eventname = file
-            .split("/")[file.split("/").length - 1].replace(".js", "");
+        const filearr = file.split(process.platform == "win32" ? "\\" : "/");
+        const eventname = filearr[filearr.length - 1].replace(".js", "");
         handlers.push({
             eventname,
             handler: module.default,
