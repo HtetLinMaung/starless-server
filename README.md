@@ -1,4 +1,4 @@
-# Starless server
+# Starless Server
 
 All in one, minimalist web server for <b>spa, express, lambda, azure function, graphql and socket.io</b>.
 
