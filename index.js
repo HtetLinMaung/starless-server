@@ -283,7 +283,7 @@ const startExpressServer = () => __awaiter(void 0, void 0, void 0, function* () 
     }));
 });
 const args = process.argv.slice(2);
-if (!args.length || args.includes("start")) {
+if (args.includes("start")) {
     startExpressServer();
 }
 else if (args.includes("build")) {

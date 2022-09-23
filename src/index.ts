@@ -300,7 +300,7 @@ const startExpressServer = async () => {
 
 const args = process.argv.slice(2);
 
-if (!args.length || args.includes("start")) {
+if (args.includes("start")) {
   startExpressServer();
 } else if (args.includes("build")) {
   if (args.includes("--azure-functions")) {
