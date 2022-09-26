@@ -13,6 +13,7 @@ import path from "path";
 import chalk from "chalk";
 import fs from "fs";
 import { isAsyncFunction } from "util/types";
+import busboy from "connect-busboy";
 
 import swaggerUi from "swagger-ui-express";
 import getFiles from "./utils/get-files";
@@ -253,6 +254,14 @@ const startExpressServer = async () => {
   }
   const app = express();
 
+  if ("beforeServerStart" in hooksModule) {
+    if (isAsyncFunction(hooksModule.beforeServerStart)) {
+      await hooksModule.beforeServerStart(app);
+    } else {
+      hooksModule.beforeServerStart(app);
+    }
+  }
+
   if ("cors" in configs) {
     app.use(cors(configs.cors));
   } else {
@@ -265,17 +274,16 @@ const startExpressServer = async () => {
     app.use(express.json({ limit: process.env.request_body_size || "100kb" }));
   }
 
+  if ("busboy" in configs) {
+    app.use(busboy(configs.busboy));
+  } else {
+    app.use(busboy({ highWaterMark: 2 * 1024 * 1024 }));
+  }
+
   app.use(express.static("public"));
 
   app.use(express.static(spaPath));
 
-  if ("beforeServerStart" in hooksModule) {
-    if (isAsyncFunction(hooksModule.beforeServerStart)) {
-      await hooksModule.beforeServerStart(app);
-    } else {
-      hooksModule.beforeServerStart(app);
-    }
-  }
   const server = app.listen(PORT, async () => {
     console.log(chalk.gray(`Server listening on port ${PORT}\n`));
     if ("afterServerStart" in hooksModule) {

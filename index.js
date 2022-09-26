@@ -47,6 +47,7 @@ const path_1 = __importDefault(require("path"));
 const chalk_1 = __importDefault(require("chalk"));
 const fs_1 = __importDefault(require("fs"));
 const types_1 = require("util/types");
+const connect_busboy_1 = __importDefault(require("connect-busboy"));
 const swagger_ui_express_1 = __importDefault(require("swagger-ui-express"));
 const get_files_1 = __importDefault(require("./utils/get-files"));
 const build_azure_function_1 = __importDefault(require("./build-azure-function"));
@@ -239,6 +240,14 @@ const startExpressServer = () => __awaiter(void 0, void 0, void 0, function* () 
         configs = configModule.default;
     }
     const app = (0, express_1.default)();
+    if ("beforeServerStart" in hooksModule) {
+        if ((0, types_1.isAsyncFunction)(hooksModule.beforeServerStart)) {
+            yield hooksModule.beforeServerStart(app);
+        }
+        else {
+            hooksModule.beforeServerStart(app);
+        }
+    }
     if ("cors" in configs) {
         app.use((0, cors_1.default)(configs.cors));
     }
@@ -251,16 +260,14 @@ const startExpressServer = () => __awaiter(void 0, void 0, void 0, function* () 
     else {
         app.use(express_1.default.json({ limit: process.env.request_body_size || "100kb" }));
     }
+    if ("busboy" in configs) {
+        app.use((0, connect_busboy_1.default)(configs.busboy));
+    }
+    else {
+        app.use((0, connect_busboy_1.default)({ highWaterMark: 2 * 1024 * 1024 }));
+    }
     app.use(express_1.default.static("public"));
     app.use(express_1.default.static(spaPath));
-    if ("beforeServerStart" in hooksModule) {
-        if ((0, types_1.isAsyncFunction)(hooksModule.beforeServerStart)) {
-            yield hooksModule.beforeServerStart(app);
-        }
-        else {
-            hooksModule.beforeServerStart(app);
-        }
-    }
     const server = app.listen(PORT, () => __awaiter(void 0, void 0, void 0, function* () {
         console.log(chalk_1.default.gray(`Server listening on port ${PORT}\n`));
         if ("afterServerStart" in hooksModule) {
