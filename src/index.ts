@@ -13,7 +13,6 @@ import path from "path";
 import chalk from "chalk";
 import fs from "fs";
 import { isAsyncFunction } from "util/types";
-import busboy from "connect-busboy";
 
 import swaggerUi from "swagger-ui-express";
 import getFiles from "./utils/get-files";
@@ -272,12 +271,6 @@ const startExpressServer = async () => {
     app.use(express.json(configs.bodyParser));
   } else {
     app.use(express.json({ limit: process.env.request_body_size || "100kb" }));
-  }
-
-  if ("busboy" in configs) {
-    app.use(busboy(configs.busboy));
-  } else {
-    app.use(busboy({ highWaterMark: 2 * 1024 * 1024 }));
   }
 
   app.use(express.static("public"));
