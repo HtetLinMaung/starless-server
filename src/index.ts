@@ -13,7 +13,6 @@ import path from "path";
 import chalk from "chalk";
 import fs from "fs";
 import { isAsyncFunction } from "util/types";
-import multer from "multer";
 
 import swaggerUi from "swagger-ui-express";
 import getFiles from "./utils/get-files";
