@@ -18,7 +18,9 @@ export default function parseRoute(route: string, mode = "express") {
   const name = route_path
     .split("/")
     .filter((r) => r.trim())
-    .join("_");
+    .join("_")
+    .replace(/{/g, "")
+    .replace(/}/g, "");
   return {
     route_path,
     func_name: name,
