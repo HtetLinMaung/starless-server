@@ -214,7 +214,7 @@ const handler = async (event) => {
 exports.handler = handler;
 `;
                 }
-                fs_1.default.writeFileSync(path_1.default.join(funcFolderPath, "index.js"), fileContent.replace(/(\.\.\/)+/, "/opt/"));
+                fs_1.default.writeFileSync(path_1.default.join(funcFolderPath, "index.js"), fileContent.replace(/(\.\.\/)+/g, "/opt/"));
             }
         }
     });

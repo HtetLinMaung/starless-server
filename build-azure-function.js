@@ -179,7 +179,7 @@ function buildAzureFunction() {
     module.exports = httpTrigger;`;
                 }
                 fs_1.default.writeFileSync(path_1.default.join(funcFolderPath, "index.js"), fileContent
-                    .replace(/(\.\.\/)+/, "../")
+                    .replace(/(\.\.\/)+/g, "../")
                     .replace("exports.handler = handler;", "")
                     .replace("exports.handler = void 0;", ""));
                 fs_1.default.writeFileSync(path_1.default.join(funcFolderPath, "function.json"), JSON.stringify({

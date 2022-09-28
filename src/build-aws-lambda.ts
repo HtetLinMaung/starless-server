@@ -210,7 +210,7 @@ exports.handler = handler;
       }
       fs.writeFileSync(
         path.join(funcFolderPath, "index.js"),
-        fileContent.replace(/(\.\.\/)+/, "/opt/")
+        fileContent.replace(/(\.\.\/)+/g, "/opt/")
       );
     }
   }

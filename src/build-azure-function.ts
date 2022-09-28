@@ -166,7 +166,7 @@ export default async function buildAzureFunction() {
       fs.writeFileSync(
         path.join(funcFolderPath, "index.js"),
         fileContent
-          .replace(/(\.\.\/)+/, "../")
+          .replace(/(\.\.\/)+/g, "../")
           .replace("exports.handler = handler;", "")
           .replace("exports.handler = void 0;", "")
       );
