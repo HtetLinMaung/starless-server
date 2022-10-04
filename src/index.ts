@@ -286,17 +286,6 @@ const startExpressServer = async () => {
         hooksModule.afterServerStart(server);
       }
     }
-    await initRoutes(app, hooksModule);
-    if (fs.existsSync(eventsFolderPath)) {
-      io = new Server(server, {
-        cors: {
-          origin: "*",
-        },
-      });
-
-      initEvents(io);
-    }
-
     if (process.env.peer_connection == "on") {
       const { ExpressPeerServer } = await import("peer");
       let peerOptions = {
@@ -314,6 +303,16 @@ const startExpressServer = async () => {
       }
 
       app.use("/peerjs", peerServer);
+    }
+    await initRoutes(app, hooksModule);
+    if (fs.existsSync(eventsFolderPath)) {
+      io = new Server(server, {
+        cors: {
+          origin: "*",
+        },
+      });
+
+      initEvents(io);
     }
   });
 };
