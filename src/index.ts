@@ -296,6 +296,25 @@ const startExpressServer = async () => {
 
       initEvents(io);
     }
+
+    if (process.env.peer_connection == "on") {
+      const { ExpressPeerServer } = await import("peer");
+      let peerOptions = {
+        path: "/",
+      };
+      if ("peer" in configs) {
+        peerOptions = { ...peerOptions, ...configs.peer };
+      }
+      const peerServer = ExpressPeerServer(server, peerOptions);
+      if ("afterPeerConnected" in hooksModule) {
+        peerServer.on("connection", hooksModule.afterPeerConnected);
+      }
+      if ("afterPeerDisconnected" in hooksModule) {
+        peerServer.on("disconnect", hooksModule.afterPeerDisconnected);
+      }
+
+      app.use("/peerjs", peerServer);
+    }
   });
 };
 

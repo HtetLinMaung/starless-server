@@ -280,6 +280,23 @@ const startExpressServer = () => __awaiter(void 0, void 0, void 0, function* () 
             });
             initEvents(io);
         }
+        if (process.env.peer_connection == "on") {
+            const { ExpressPeerServer } = yield Promise.resolve().then(() => __importStar(require("peer")));
+            let peerOptions = {
+                path: "/",
+            };
+            if ("peer" in configs) {
+                peerOptions = Object.assign(Object.assign({}, peerOptions), configs.peer);
+            }
+            const peerServer = ExpressPeerServer(server, peerOptions);
+            if ("afterPeerConnected" in hooksModule) {
+                peerServer.on("connection", hooksModule.afterPeerConnected);
+            }
+            if ("afterPeerDisconnected" in hooksModule) {
+                peerServer.on("disconnect", hooksModule.afterPeerDisconnected);
+            }
+            app.use("/peerjs", peerServer);
+        }
     }));
 });
 const args = process.argv.slice(2);

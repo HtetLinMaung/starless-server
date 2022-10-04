@@ -231,15 +231,27 @@ module.exports = (io, socket) => (anotherSocketId, msg) => {
 };
 ```
 
+## PeerServer
+
+starless-server has build in support for `peerjs`. To listen for peer connection you must add `peer_connection` environment to `on` in `.env` file.
+
+```
+peer_connection=on
+```
+
+After starting the server, open the browser and check http://localhost:3000/peerjs/
+
 ## Hooks
 
 If you want to run some scripts before or after server start, create `hooks.js` at the root of your application.
 
-There are three life cycle hooks
+There are five life cycle hooks
 
 - beforeServerStart - Run before server start
 - afterServerStart - Run after server start
 - errorHandler - Express error handler
+- afterPeerConnected - Run after peer connects to the server
+- afterPeerDisconnected - Run after peer disconnects from the server
 
 ```js
 exports.beforeServerStart = (app) => {
@@ -253,6 +265,14 @@ exports.afterServerStart = (server) => {
 exports.errorHandler = (err, req, res, next) => {
   console.error(err);
   res.status(500).json({ message: err.message });
+};
+
+exports.afterPeerConnected = (client) => {
+  console.log("After peer connected.");
+};
+
+exports.afterPeerDisconnected = (client) => {
+  console.log("After peer disconnected.");
 };
 ```
 
@@ -289,7 +309,7 @@ starless-server allows you to serve auto-generated swagger-ui generated API docs
 
 ## Config
 
-If you want to change certain settings like cors or request body size, create `config.js` at the root of your application.
+If you want to change certain settings like cors or request body size or peer server options, create `config.js` at the root of your application.
 
 ```js
 module.exports = {
@@ -298,6 +318,9 @@ module.exports = {
   },
   bodyParser: {
     limit: "100kb", // default limit
+  },
+  peer: {
+    path: "/", // default peer path
   },
 };
 ```
