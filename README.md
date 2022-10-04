@@ -320,7 +320,6 @@ module.exports = {
     limit: "100kb", // default limit
   },
   peer: {
-    path: "/", // default peer path
-  },
+    path: "/",
 };
 ```

@@ -271,20 +271,9 @@ const startExpressServer = () => __awaiter(void 0, void 0, void 0, function* () 
                 hooksModule.afterServerStart(server);
             }
         }
-        yield initRoutes(app, hooksModule);
-        if (fs_1.default.existsSync(eventsFolderPath)) {
-            io = new socket_io_1.Server(server, {
-                cors: {
-                    origin: "*",
-                },
-            });
-            initEvents(io);
-        }
         if (process.env.peer_connection == "on") {
             const { ExpressPeerServer } = yield Promise.resolve().then(() => __importStar(require("peer")));
-            let peerOptions = {
-                path: "/",
-            };
+            let peerOptions = {};
             if ("peer" in configs) {
                 peerOptions = Object.assign(Object.assign({}, peerOptions), configs.peer);
             }
@@ -296,6 +285,16 @@ const startExpressServer = () => __awaiter(void 0, void 0, void 0, function* () 
                 peerServer.on("disconnect", hooksModule.afterPeerDisconnected);
             }
             app.use("/peerjs", peerServer);
+        }
+        yield initRoutes(app, hooksModule);
+        if (fs_1.default.existsSync(eventsFolderPath) &&
+            process.env.peer_connection != "on") {
+            io = new socket_io_1.Server(server, {
+                cors: {
+                    origin: "*",
+                },
+            });
+            initEvents(io);
         }
     }));
 });
