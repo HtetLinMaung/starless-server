@@ -294,10 +294,18 @@ const startExpressServer = async () => {
       }
       const peerServer = ExpressPeerServer(server, peerOptions);
       if ("afterPeerConnected" in hooksModule) {
-        peerServer.on("connection", hooksModule.afterPeerConnected);
+        if (isAsyncFunction(hooksModule.afterPeerConnected)) {
+          await peerServer.on("connection", hooksModule.afterPeerConnected);
+        } else {
+          peerServer.on("connection", hooksModule.afterPeerConnected);
+        }
       }
       if ("afterPeerDisconnected" in hooksModule) {
-        peerServer.on("disconnect", hooksModule.afterPeerDisconnected);
+        if (isAsyncFunction(hooksModule.afterPeerDisconnected)) {
+          await peerServer.on("disconnect", hooksModule.afterPeerDisconnected);
+        } else {
+          peerServer.on("disconnect", hooksModule.afterPeerDisconnected);
+        }
       }
 
       app.use("/peerjs", peerServer);
@@ -312,7 +320,13 @@ const startExpressServer = async () => {
           origin: "*",
         },
       });
-
+      if ("afterSocketIOStart" in hooksModule) {
+        if (isAsyncFunction(hooksModule.afterSocketIOStart)) {
+          await hooksModule.afterSocketIOStart(io);
+        } else {
+          hooksModule.afterSocketIOStart(io);
+        }
+      }
       initEvents(io);
     }
   });

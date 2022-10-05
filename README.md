@@ -245,13 +245,14 @@ After starting the server, open the browser and check http://localhost:3000/peer
 
 If you want to run some scripts before or after server start, create `hooks.js` at the root of your application.
 
-There are five life cycle hooks
+There are six life cycle hooks
 
 - beforeServerStart - Run before server start
 - afterServerStart - Run after server start
 - errorHandler - Express error handler
 - afterPeerConnected - Run after peer connects to the server
 - afterPeerDisconnected - Run after peer disconnects from the server
+- afterSocketIOStart - Run after socketio server start
 
 ```js
 exports.beforeServerStart = (app) => {
@@ -273,6 +274,10 @@ exports.afterPeerConnected = (client) => {
 
 exports.afterPeerDisconnected = (client) => {
   console.log("After peer disconnected.");
+};
+
+exports.afterSocketIOStart = (client) => {
+  console.log("After socketio start.");
 };
 ```
 
