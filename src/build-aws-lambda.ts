@@ -159,7 +159,11 @@ const handler = async (event) => {
 
 exports.handler = handler;
 `;
-      } else if (!module.default.toString().includes("event")) {
+      } else if (
+        module.default.toString().includes("res.json(") ||
+        module.default.toString().includes("res.send(") ||
+        module.default.toString().includes("res.status(")
+      ) {
         fileContent =
           fileContent
             .replace("exports.default =", "const expressHandler =")
