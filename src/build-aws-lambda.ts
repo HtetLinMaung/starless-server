@@ -159,7 +159,7 @@ const handler = async (event) => {
 
 exports.handler = handler;
 `;
-      } else {
+      } else if (!module.default.toString().includes("event")) {
         fileContent =
           fileContent
             .replace("exports.default =", "const expressHandler =")
@@ -198,9 +198,9 @@ const handler = async (event) => {
     send,
   }
   if (expressHandler.toString().includes('async')) {
-    await expressHandler(request, response, (sth) => {});
+    await expressHandler(request, response);
   } else {
-    expressHandler(request, response, (sth) => {});
+    expressHandler(request, response);
   }
   return lambdaRes;
 };

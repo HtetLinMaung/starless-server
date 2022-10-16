@@ -158,7 +158,7 @@ function buildAzureFunction() {
         context.res['body'] = obj;
       }
       const send = (data) => {
-        contest.res['body'] = data;
+        context.res['body'] = data;
       }
       const status = (code) => {
         context.res.status = code;
@@ -170,9 +170,9 @@ function buildAzureFunction() {
         send,
       }
       if (expressHandler.toString().includes('async')) {
-        await expressHandler(request, response, (sth) => {});
+        await expressHandler(request, response);
       } else {
-        expressHandler(request, response, (sth) => {});
+        expressHandler(request, response);
       }
     };
     
