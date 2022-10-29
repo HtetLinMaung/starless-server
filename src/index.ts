@@ -14,6 +14,8 @@ import chalk from "chalk";
 import fs from "node:fs";
 import cluster from "node:cluster";
 import os from "node:os";
+import http from "node:http";
+import https from "node:https";
 import { isAsyncFunction } from "util/types";
 
 import swaggerUi from "swagger-ui-express";
@@ -294,7 +296,18 @@ const startExpressServer = async () => {
       cluster.fork();
     });
   } else {
-    const server = app.listen(PORT, async () => {
+    const server =
+      process.env.ssl_key && process.env.ssl_cert
+        ? https.createServer(
+            {
+              key: fs.readFileSync(process.env.ssl_key),
+              cert: fs.readFileSync(process.env.ssl_cert),
+            },
+            app
+          )
+        : http.createServer(app);
+
+    server.listen(PORT, async () => {
       console.log(
         chalk.gray(`Server ${process.pid} listening on port ${PORT}\n`)
       );

@@ -48,6 +48,8 @@ const chalk_1 = __importDefault(require("chalk"));
 const node_fs_1 = __importDefault(require("node:fs"));
 const node_cluster_1 = __importDefault(require("node:cluster"));
 const node_os_1 = __importDefault(require("node:os"));
+const node_http_1 = __importDefault(require("node:http"));
+const node_https_1 = __importDefault(require("node:https"));
 const types_1 = require("util/types");
 const swagger_ui_express_1 = __importDefault(require("swagger-ui-express"));
 const get_files_1 = __importDefault(require("./utils/get-files"));
@@ -280,7 +282,13 @@ const startExpressServer = () => __awaiter(void 0, void 0, void 0, function* () 
         });
     }
     else {
-        const server = app.listen(PORT, () => __awaiter(void 0, void 0, void 0, function* () {
+        const server = process.env.ssl_key && process.env.ssl_cert
+            ? node_https_1.default.createServer({
+                key: node_fs_1.default.readFileSync(process.env.ssl_key),
+                cert: node_fs_1.default.readFileSync(process.env.ssl_cert),
+            }, app)
+            : node_http_1.default.createServer(app);
+        server.listen(PORT, () => __awaiter(void 0, void 0, void 0, function* () {
             console.log(chalk_1.default.gray(`Server ${process.pid} listening on port ${PORT}\n`));
             if ("afterServerStart" in hooksModule) {
                 if ((0, types_1.isAsyncFunction)(hooksModule.afterServerStart)) {
