@@ -183,6 +183,7 @@ port=3001
 spa_path=dist/authentication
 graphql_path=/api/graphql
 request_body_size=1000kb
+worker_processes=auto
 ```
 
 ## GraphQL API

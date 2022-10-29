@@ -9,9 +9,11 @@ import { buildSchema } from "graphql";
 import { Server } from "socket.io";
 import { APIGatewayProxyResult } from "aws-lambda";
 import cors from "cors";
-import path from "path";
+import path from "node:path";
 import chalk from "chalk";
-import fs from "fs";
+import fs from "node:fs";
+import cluster from "node:cluster";
+import os from "node:os";
 import { isAsyncFunction } from "util/types";
 
 import swaggerUi from "swagger-ui-express";
@@ -23,6 +25,12 @@ import parseRoute from "./utils/parse-route";
 let io: any;
 
 const PORT = process.env.port || 3000;
+let worker_processes = 1;
+if (process.env.worker_processes == "auto") {
+  worker_processes = os.cpus().length;
+} else {
+  worker_processes = parseInt(process.env.worker_processes || "1");
+}
 
 const configFilePath = path.join(process.cwd(), "config.js");
 const hooksFilePath = path.join(process.cwd(), "hooks.js");
@@ -277,59 +285,74 @@ const startExpressServer = async () => {
 
   app.use(express.static(spaPath));
 
-  const server = app.listen(PORT, async () => {
-    console.log(chalk.gray(`Server listening on port ${PORT}\n`));
-    if ("afterServerStart" in hooksModule) {
-      if (isAsyncFunction(hooksModule.afterServerStart)) {
-        await hooksModule.afterServerStart(server);
-      } else {
-        hooksModule.afterServerStart(server);
-      }
+  if (cluster.isPrimary) {
+    for (let i = 0; i < worker_processes; i++) {
+      cluster.fork();
     }
-    if (process.env.peer_connection == "on") {
-      const { ExpressPeerServer } = await import("peer");
-      let peerOptions = {};
-      if ("peer" in configs) {
-        peerOptions = { ...peerOptions, ...configs.peer };
-      }
-      const peerServer = ExpressPeerServer(server, peerOptions);
-      if ("afterPeerConnected" in hooksModule) {
-        if (isAsyncFunction(hooksModule.afterPeerConnected)) {
-          await peerServer.on("connection", hooksModule.afterPeerConnected);
+    cluster.on("exit", (worker) => {
+      console.log(`Worker ${worker.process.pid} died!`);
+      cluster.fork();
+    });
+  } else {
+    const server = app.listen(PORT, async () => {
+      console.log(
+        chalk.gray(`Server ${process.pid} listening on port ${PORT}\n`)
+      );
+      if ("afterServerStart" in hooksModule) {
+        if (isAsyncFunction(hooksModule.afterServerStart)) {
+          await hooksModule.afterServerStart(server);
         } else {
-          peerServer.on("connection", hooksModule.afterPeerConnected);
+          hooksModule.afterServerStart(server);
         }
       }
-      if ("afterPeerDisconnected" in hooksModule) {
-        if (isAsyncFunction(hooksModule.afterPeerDisconnected)) {
-          await peerServer.on("disconnect", hooksModule.afterPeerDisconnected);
-        } else {
-          peerServer.on("disconnect", hooksModule.afterPeerDisconnected);
+      if (process.env.peer_connection == "on") {
+        const { ExpressPeerServer } = await import("peer");
+        let peerOptions = {};
+        if ("peer" in configs) {
+          peerOptions = { ...peerOptions, ...configs.peer };
         }
-      }
+        const peerServer = ExpressPeerServer(server, peerOptions);
+        if ("afterPeerConnected" in hooksModule) {
+          if (isAsyncFunction(hooksModule.afterPeerConnected)) {
+            await peerServer.on("connection", hooksModule.afterPeerConnected);
+          } else {
+            peerServer.on("connection", hooksModule.afterPeerConnected);
+          }
+        }
+        if ("afterPeerDisconnected" in hooksModule) {
+          if (isAsyncFunction(hooksModule.afterPeerDisconnected)) {
+            await peerServer.on(
+              "disconnect",
+              hooksModule.afterPeerDisconnected
+            );
+          } else {
+            peerServer.on("disconnect", hooksModule.afterPeerDisconnected);
+          }
+        }
 
-      app.use("/peerjs", peerServer);
-    }
-    await initRoutes(app, hooksModule);
-    if (
-      fs.existsSync(eventsFolderPath) &&
-      process.env.peer_connection != "on"
-    ) {
-      io = new Server(server, {
-        cors: {
-          origin: "*",
-        },
-      });
-      if ("afterSocketIOStart" in hooksModule) {
-        if (isAsyncFunction(hooksModule.afterSocketIOStart)) {
-          await hooksModule.afterSocketIOStart(io);
-        } else {
-          hooksModule.afterSocketIOStart(io);
-        }
+        app.use("/peerjs", peerServer);
       }
-      initEvents(io);
-    }
-  });
+      await initRoutes(app, hooksModule);
+      if (
+        fs.existsSync(eventsFolderPath) &&
+        process.env.peer_connection != "on"
+      ) {
+        io = new Server(server, {
+          cors: {
+            origin: "*",
+          },
+        });
+        if ("afterSocketIOStart" in hooksModule) {
+          if (isAsyncFunction(hooksModule.afterSocketIOStart)) {
+            await hooksModule.afterSocketIOStart(io);
+          } else {
+            hooksModule.afterSocketIOStart(io);
+          }
+        }
+        initEvents(io);
+      }
+    });
+  }
 };
 
 const args = process.argv.slice(2);

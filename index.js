@@ -43,9 +43,11 @@ const express_graphql_1 = require("express-graphql");
 const graphql_1 = require("graphql");
 const socket_io_1 = require("socket.io");
 const cors_1 = __importDefault(require("cors"));
-const path_1 = __importDefault(require("path"));
+const node_path_1 = __importDefault(require("node:path"));
 const chalk_1 = __importDefault(require("chalk"));
-const fs_1 = __importDefault(require("fs"));
+const node_fs_1 = __importDefault(require("node:fs"));
+const node_cluster_1 = __importDefault(require("node:cluster"));
+const node_os_1 = __importDefault(require("node:os"));
 const types_1 = require("util/types");
 const swagger_ui_express_1 = __importDefault(require("swagger-ui-express"));
 const get_files_1 = __importDefault(require("./utils/get-files"));
@@ -54,12 +56,19 @@ const build_aws_lambda_1 = __importDefault(require("./build-aws-lambda"));
 const parse_route_1 = __importDefault(require("./utils/parse-route"));
 let io;
 const PORT = process.env.port || 3000;
-const configFilePath = path_1.default.join(process.cwd(), "config.js");
-const hooksFilePath = path_1.default.join(process.cwd(), "hooks.js");
-const routesFolderPath = path_1.default.join(process.cwd(), "routes");
-const graphqlFolderPath = path_1.default.join(process.cwd(), "graphql");
-const eventsFolderPath = path_1.default.join(process.cwd(), "events");
-const swaggerFilePath = path_1.default.join(process.cwd(), "swagger.json");
+let worker_processes = 1;
+if (process.env.worker_processes == "auto") {
+    worker_processes = node_os_1.default.cpus().length;
+}
+else {
+    worker_processes = parseInt(process.env.worker_processes || "1");
+}
+const configFilePath = node_path_1.default.join(process.cwd(), "config.js");
+const hooksFilePath = node_path_1.default.join(process.cwd(), "hooks.js");
+const routesFolderPath = node_path_1.default.join(process.cwd(), "routes");
+const graphqlFolderPath = node_path_1.default.join(process.cwd(), "graphql");
+const eventsFolderPath = node_path_1.default.join(process.cwd(), "events");
+const swaggerFilePath = node_path_1.default.join(process.cwd(), "swagger.json");
 const openapi = {
     openapi: "3.0.3",
     info: {
@@ -80,12 +89,12 @@ const openapi = {
     ],
     paths: {},
 };
-const spaPath = path_1.default.join(process.cwd(), process.env.spa_path || "dist");
+const spaPath = node_path_1.default.join(process.cwd(), process.env.spa_path || "dist");
 const initRoutes = (app, hooksModule = {}) => __awaiter(void 0, void 0, void 0, function* () {
-    if (fs_1.default.existsSync(graphqlFolderPath) &&
-        fs_1.default.existsSync(path_1.default.join(graphqlFolderPath, "schema.gql"))) {
-        const schemaContents = fs_1.default.readFileSync(path_1.default.join(graphqlFolderPath, "schema.gql"), "utf8");
-        const module = yield Promise.resolve().then(() => __importStar(require(path_1.default.join(graphqlFolderPath, "root.js"))));
+    if (node_fs_1.default.existsSync(graphqlFolderPath) &&
+        node_fs_1.default.existsSync(node_path_1.default.join(graphqlFolderPath, "schema.gql"))) {
+        const schemaContents = node_fs_1.default.readFileSync(node_path_1.default.join(graphqlFolderPath, "schema.gql"), "utf8");
+        const module = yield Promise.resolve().then(() => __importStar(require(node_path_1.default.join(graphqlFolderPath, "root.js"))));
         app.use(process.env.graphql_path || "/graphql", (0, express_graphql_1.graphqlHTTP)({
             schema: (0, graphql_1.buildSchema)(schemaContents),
             rootValue: module.default,
@@ -188,15 +197,15 @@ const initRoutes = (app, hooksModule = {}) => __awaiter(void 0, void 0, void 0, 
             }
         }
     }
-    if (!fs_1.default.existsSync(swaggerFilePath)) {
-        fs_1.default.writeFileSync(swaggerFilePath, JSON.stringify(openapi, null, 2));
+    if (!node_fs_1.default.existsSync(swaggerFilePath)) {
+        node_fs_1.default.writeFileSync(swaggerFilePath, JSON.stringify(openapi, null, 2));
     }
     const swaggerDocument = yield Promise.resolve().then(() => __importStar(require(swaggerFilePath)));
     app.use("/swagger", swagger_ui_express_1.default.serve, swagger_ui_express_1.default.setup(swaggerDocument));
     console.log(`\t${chalk_1.default.yellow("swagger")} ${chalk_1.default.green("[GET] http://localhost:" + PORT + "/swagger")}\n`);
-    if (fs_1.default.existsSync(spaPath)) {
+    if (node_fs_1.default.existsSync(spaPath)) {
         app.use("/*", (req, res) => {
-            res.sendFile(path_1.default.join(spaPath, "index.html"));
+            res.sendFile(node_path_1.default.join(spaPath, "index.html"));
         });
     }
     if ("errorHandler" in hooksModule) {
@@ -231,10 +240,10 @@ const initEvents = (io) => __awaiter(void 0, void 0, void 0, function* () {
 const startExpressServer = () => __awaiter(void 0, void 0, void 0, function* () {
     let configs = {};
     let hooksModule = {};
-    if (fs_1.default.existsSync(hooksFilePath)) {
+    if (node_fs_1.default.existsSync(hooksFilePath)) {
         hooksModule = yield Promise.resolve().then(() => __importStar(require(hooksFilePath)));
     }
-    if (fs_1.default.existsSync(configFilePath)) {
+    if (node_fs_1.default.existsSync(configFilePath)) {
         const configModule = yield Promise.resolve().then(() => __importStar(require(configFilePath)));
         configs = configModule.default;
     }
@@ -261,60 +270,71 @@ const startExpressServer = () => __awaiter(void 0, void 0, void 0, function* () 
     }
     app.use(express_1.default.static("public"));
     app.use(express_1.default.static(spaPath));
-    const server = app.listen(PORT, () => __awaiter(void 0, void 0, void 0, function* () {
-        console.log(chalk_1.default.gray(`Server listening on port ${PORT}\n`));
-        if ("afterServerStart" in hooksModule) {
-            if ((0, types_1.isAsyncFunction)(hooksModule.afterServerStart)) {
-                yield hooksModule.afterServerStart(server);
-            }
-            else {
-                hooksModule.afterServerStart(server);
-            }
+    if (node_cluster_1.default.isPrimary) {
+        for (let i = 0; i < worker_processes; i++) {
+            node_cluster_1.default.fork();
         }
-        if (process.env.peer_connection == "on") {
-            const { ExpressPeerServer } = yield Promise.resolve().then(() => __importStar(require("peer")));
-            let peerOptions = {};
-            if ("peer" in configs) {
-                peerOptions = Object.assign(Object.assign({}, peerOptions), configs.peer);
-            }
-            const peerServer = ExpressPeerServer(server, peerOptions);
-            if ("afterPeerConnected" in hooksModule) {
-                if ((0, types_1.isAsyncFunction)(hooksModule.afterPeerConnected)) {
-                    yield peerServer.on("connection", hooksModule.afterPeerConnected);
+        node_cluster_1.default.on("exit", (worker) => {
+            console.log(`Worker ${worker.process.pid} died!`);
+            node_cluster_1.default.fork();
+        });
+    }
+    else {
+        const server = app.listen(PORT, () => __awaiter(void 0, void 0, void 0, function* () {
+            console.log(chalk_1.default.gray(`Server ${process.pid} listening on port ${PORT}\n`));
+            if ("afterServerStart" in hooksModule) {
+                if ((0, types_1.isAsyncFunction)(hooksModule.afterServerStart)) {
+                    yield hooksModule.afterServerStart(server);
                 }
                 else {
-                    peerServer.on("connection", hooksModule.afterPeerConnected);
+                    hooksModule.afterServerStart(server);
                 }
             }
-            if ("afterPeerDisconnected" in hooksModule) {
-                if ((0, types_1.isAsyncFunction)(hooksModule.afterPeerDisconnected)) {
-                    yield peerServer.on("disconnect", hooksModule.afterPeerDisconnected);
+            if (process.env.peer_connection == "on") {
+                const { ExpressPeerServer } = yield Promise.resolve().then(() => __importStar(require("peer")));
+                let peerOptions = {};
+                if ("peer" in configs) {
+                    peerOptions = Object.assign(Object.assign({}, peerOptions), configs.peer);
                 }
-                else {
-                    peerServer.on("disconnect", hooksModule.afterPeerDisconnected);
+                const peerServer = ExpressPeerServer(server, peerOptions);
+                if ("afterPeerConnected" in hooksModule) {
+                    if ((0, types_1.isAsyncFunction)(hooksModule.afterPeerConnected)) {
+                        yield peerServer.on("connection", hooksModule.afterPeerConnected);
+                    }
+                    else {
+                        peerServer.on("connection", hooksModule.afterPeerConnected);
+                    }
                 }
+                if ("afterPeerDisconnected" in hooksModule) {
+                    if ((0, types_1.isAsyncFunction)(hooksModule.afterPeerDisconnected)) {
+                        yield peerServer.on("disconnect", hooksModule.afterPeerDisconnected);
+                    }
+                    else {
+                        peerServer.on("disconnect", hooksModule.afterPeerDisconnected);
+                    }
+                }
+                app.use("/peerjs", peerServer);
             }
-            app.use("/peerjs", peerServer);
-        }
-        yield initRoutes(app, hooksModule);
-        if (fs_1.default.existsSync(eventsFolderPath) &&
-            process.env.peer_connection != "on") {
-            io = new socket_io_1.Server(server, {
-                cors: {
-                    origin: "*",
-                },
-            });
-            if ("afterSocketIOStart" in hooksModule) {
-                if ((0, types_1.isAsyncFunction)(hooksModule.afterSocketIOStart)) {
-                    yield hooksModule.afterSocketIOStart(io);
+            yield initRoutes(app, hooksModule);
+            if (node_fs_1.default.existsSync(eventsFolderPath) &&
+                process.env.peer_connection != "on") {
+                io = new socket_io_1.Server(server, {
+                    cors: {
+                        origin: "*",
+                    },
+                });
+                if ("afterSocketIOStart" in hooksModule) {
+                    if ((0, types_1.isAsyncFunction)(hooksModule.afterSocketIOStart)) {
+                        yield hooksModule.afterSocketIOStart(io);
+                    }
+                    else {
+                        hooksModule.afterSocketIOStart(io);
+                    }
                 }
-                else {
-                    hooksModule.afterSocketIOStart(io);
-                }
+                initEvents(io);
             }
-            initEvents(io);
-        }
-    }));
+        }));
+    }
 });
 const args = process.argv.slice(2);
 if (args.includes("start")) {

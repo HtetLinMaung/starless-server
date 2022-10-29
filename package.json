@@ -1,10 +1,10 @@
 {
   "name": "starless-server",
-  "version": "1.9.7",
+  "version": "1.10.0",
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "tsc && node index",
+    "start": "tsc && node index start",
     "dev": "nodemon index",
     "build": "tsc && rm -rf swagger.json",
     "release": "tsc && npm publish"
