@@ -183,8 +183,19 @@ port=3001
 spa_path=dist/authentication
 graphql_path=/api/graphql
 request_body_size=1000kb
-worker_processes=auto
 ```
+
+### Worker Process
+
+If you want to run multiple instances of server that can distribute workloads among their application threads, you can add `worker_processes` in environment.
+
+```
+...
+worker_processes=4
+...
+```
+
+> <b>Note</b> Default `worker_processes` count is 1. If `auto` is set, server will set all available cpus count.
 
 ## GraphQL API
 
