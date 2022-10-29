@@ -56,6 +56,7 @@ const get_files_1 = __importDefault(require("./utils/get-files"));
 const build_azure_function_1 = __importDefault(require("./build-azure-function"));
 const build_aws_lambda_1 = __importDefault(require("./build-aws-lambda"));
 const parse_route_1 = __importDefault(require("./utils/parse-route"));
+const shared_memory_1 = __importDefault(require("./shared-memory"));
 let io;
 const PORT = process.env.port || 3000;
 let worker_processes = 1;
@@ -364,5 +365,6 @@ const server = {
         }
         return io;
     },
+    sharedMemory: shared_memory_1.default,
 };
 exports.default = server;

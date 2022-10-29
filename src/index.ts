@@ -23,6 +23,7 @@ import getFiles from "./utils/get-files";
 import buildAzureFunction from "./build-azure-function";
 import buildAwsLambda from "./build-aws-lambda";
 import parseRoute from "./utils/parse-route";
+import sharedMemory from "./shared-memory";
 
 let io: any;
 
@@ -389,6 +390,7 @@ const server = {
     }
     return io;
   },
+  sharedMemory,
 };
 
 export default server;
