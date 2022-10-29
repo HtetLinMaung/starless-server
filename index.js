@@ -56,7 +56,7 @@ const get_files_1 = __importDefault(require("./utils/get-files"));
 const build_azure_function_1 = __importDefault(require("./build-azure-function"));
 const build_aws_lambda_1 = __importDefault(require("./build-aws-lambda"));
 const parse_route_1 = __importDefault(require("./utils/parse-route"));
-const shared_memory_1 = __importDefault(require("./shared-memory"));
+const shared_memory_1 = __importStar(require("./shared-memory"));
 let io;
 const PORT = process.env.port || 3000;
 let worker_processes = 1;
@@ -274,15 +274,40 @@ const startExpressServer = () => __awaiter(void 0, void 0, void 0, function* () 
     app.use(express_1.default.static("public"));
     app.use(express_1.default.static(spaPath));
     if (node_cluster_1.default.isPrimary) {
+        const msgHandler = (msg) => {
+            for (const [k, v] of Object.entries(msg)) {
+                if (v == null) {
+                    delete shared_memory_1.state[k];
+                }
+                else {
+                    shared_memory_1.state[k] = v;
+                }
+            }
+            for (const id in node_cluster_1.default.workers) {
+                node_cluster_1.default.workers[id].send(msg);
+            }
+        };
         for (let i = 0; i < worker_processes; i++) {
-            node_cluster_1.default.fork();
+            const worker = node_cluster_1.default.fork();
+            worker.on("message", msgHandler);
         }
         node_cluster_1.default.on("exit", (worker) => {
             console.log(`Worker ${worker.process.pid} died!`);
-            node_cluster_1.default.fork();
+            const newWorker = node_cluster_1.default.fork();
+            newWorker.on("message", msgHandler);
         });
     }
     else {
+        process.on("message", (msg) => {
+            for (const [k, v] of Object.entries(msg.payload)) {
+                if (v == null) {
+                    delete shared_memory_1.state[k];
+                }
+                else {
+                    shared_memory_1.state[k] = v;
+                }
+            }
+        });
         const server = process.env.ssl_key && process.env.ssl_cert
             ? node_https_1.default.createServer({
                 key: node_fs_1.default.readFileSync(process.env.ssl_key),

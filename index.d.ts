@@ -4,7 +4,9 @@ declare const server: {
     getIO: () => any;
     sharedMemory: {
         set: (key: string, value: any) => void;
-        get: (key: string) => undefined;
+        setAll: (payload: import("./shared-memory").DynamicObject) => void;
+        get: (key: string) => any;
+        getAll(): import("./shared-memory").DynamicObject;
     };
 };
 export default server;

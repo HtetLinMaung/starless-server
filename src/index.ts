@@ -23,7 +23,7 @@ import getFiles from "./utils/get-files";
 import buildAzureFunction from "./build-azure-function";
 import buildAwsLambda from "./build-aws-lambda";
 import parseRoute from "./utils/parse-route";
-import sharedMemory from "./shared-memory";
+import sharedMemory, { state } from "./shared-memory";
 
 let io: any;
 
@@ -289,14 +289,38 @@ const startExpressServer = async () => {
   app.use(express.static(spaPath));
 
   if (cluster.isPrimary) {
+    const msgHandler = (msg) => {
+      for (const [k, v] of Object.entries(msg)) {
+        if (v == null) {
+          delete state[k];
+        } else {
+          state[k] = v;
+        }
+      }
+      for (const id in cluster.workers) {
+        cluster.workers[id].send(msg);
+      }
+    };
+
     for (let i = 0; i < worker_processes; i++) {
-      cluster.fork();
+      const worker = cluster.fork();
+      worker.on("message", msgHandler);
     }
     cluster.on("exit", (worker) => {
       console.log(`Worker ${worker.process.pid} died!`);
-      cluster.fork();
+      const newWorker = cluster.fork();
+      newWorker.on("message", msgHandler);
     });
   } else {
+    process.on("message", (msg: any) => {
+      for (const [k, v] of Object.entries(msg)) {
+        if (v == null) {
+          delete state[k];
+        } else {
+          state[k] = v;
+        }
+      }
+    });
     const server =
       process.env.ssl_key && process.env.ssl_cert
         ? https.createServer(
