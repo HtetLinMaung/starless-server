@@ -3,7 +3,7 @@
 import dotenv from "dotenv";
 dotenv.config();
 
-import express, { Request, Response, Express } from "express";
+import express, { Request, Response, Express, NextFunction } from "express";
 import { graphqlHTTP } from "express-graphql";
 import { buildSchema } from "graphql";
 import { Server } from "socket.io";
@@ -64,7 +64,11 @@ const openapi = {
 
 const spaPath = path.join(process.cwd(), process.env.spa_path || "dist");
 
-const initRoutes = async (app: Express, hooksModule: any = {}) => {
+const initRoutes = async (
+  app: Express,
+  hooksModule: any = {},
+  configs: any = {}
+) => {
   if (
     fs.existsSync(graphqlFolderPath) &&
     fs.existsSync(path.join(graphqlFolderPath, "schema.gql"))
@@ -137,64 +141,258 @@ const initRoutes = async (app: Express, hooksModule: any = {}) => {
         if ("handler" in module) {
           const { handler } = module;
           expressHandler = async (req: Request, res: Response) => {
-            const event = {
-              path: req.path,
-              httpMethod: req.method,
-              headers: req.headers,
-              queryStringParameters: req.query,
-              pathParameters: req.params,
-              body: req.body ? JSON.stringify(req.body) : null,
-            };
-            const lambdaResponse: APIGatewayProxyResult = await handler(event);
-            if (lambdaResponse.hasOwnProperty("headers")) {
-              for (const [k, v] of Object.entries(lambdaResponse.headers)) {
-                res.setHeader(k, v.toString());
+            let doCache = false;
+            if ("rules" in configs) {
+              for (const rule of configs.rules) {
+                if (
+                  req.url.match(new RegExp(rule.url)) &&
+                  rule.method.toLowerCase() == req.method.toLowerCase() &&
+                  rule.cache
+                ) {
+                  doCache = true;
+                  break;
+                }
               }
             }
-            res
-              .status(lambdaResponse.statusCode)
-              .send(JSON.parse(lambdaResponse.body));
+            let reqHeaders = { ...req.headers };
+            delete reqHeaders["postman-token"];
+            const cacheKeyData = {
+              params: req.params,
+              query: req.query,
+              body: req.body,
+              headers: reqHeaders,
+              method: req.method,
+              url: req.url,
+            };
+            const cacheKey = JSON.stringify(cacheKeyData);
+            const cacheData = sharedMemory.get(cacheKey);
+            if (doCache && cacheData) {
+              for (const [k, v] of Object.entries(cacheData.headers)) {
+                res.setHeader(k, v.toString());
+              }
+              if (typeof cacheData.body == "object") {
+                res.status(cacheData.status).json(cacheData.body);
+              } else {
+                res.status(cacheData.status).send(cacheData.body);
+              }
+            } else {
+              const event = {
+                path: req.path,
+                httpMethod: req.method,
+                headers: req.headers,
+                queryStringParameters: req.query,
+                pathParameters: req.params,
+                body: req.body ? JSON.stringify(req.body) : null,
+              };
+              const lambdaResponse: APIGatewayProxyResult = await handler(
+                event
+              );
+              if (lambdaResponse.hasOwnProperty("headers")) {
+                for (const [k, v] of Object.entries(lambdaResponse.headers)) {
+                  res.setHeader(k, v.toString());
+                }
+              }
+              res
+                .status(lambdaResponse.statusCode)
+                .send(JSON.parse(lambdaResponse.body));
+
+              if (doCache) {
+                sharedMemory.set(cacheKey, {
+                  status: lambdaResponse.statusCode,
+                  headers: lambdaResponse.headers || {},
+                  body: JSON.parse(lambdaResponse.body),
+                });
+                if (io) {
+                  io.emit("cache:update", {
+                    url: req.url,
+                    method: req.method,
+                  });
+                }
+              }
+            }
           };
         } else {
           const handler = module.default;
           if (handler.toString().includes("context")) {
             expressHandler = async (req: Request, res: Response) => {
-              const context: any = {
-                log: (msg: string) =>
-                  console.log(
-                    `${chalk.gray(
-                      `[${new Date().toISOString()}]`
-                    )} ${chalk.cyan(msg)}`
-                  ),
-                executionContext: {
-                  functionName: route_path ? name : "",
-                },
-                bindingData: req.params,
-                res: {
-                  status: 200,
-                  body: "",
-                },
-              };
-              const event = {
-                url: `http://localhost:${PORT}${req.path}`,
-                method: req.method,
-                headers: req.headers,
-                query: req.query,
-                params: req.params,
-                body: req.body,
-              };
-
-              await handler(context, event);
-              const { status, body, headers } = context.res;
-              if (headers) {
-                for (const [k, v] of Object.entries(headers)) {
-                  res.setHeader(k, v.toString());
+              let doCache = false;
+              if ("rules" in configs) {
+                for (const rule of configs.rules) {
+                  if (
+                    req.url.match(new RegExp(rule.url)) &&
+                    rule.method.toLowerCase() == req.method.toLowerCase() &&
+                    rule.cache
+                  ) {
+                    doCache = true;
+                    break;
+                  }
                 }
               }
-              res.status(status || 200).send(body);
+              let reqHeaders = { ...req.headers };
+              delete reqHeaders["postman-token"];
+              const cacheKeyData = {
+                params: req.params,
+                query: req.query,
+                body: req.body,
+                headers: reqHeaders,
+                method: req.method,
+                url: req.url,
+              };
+              const cacheKey = JSON.stringify(cacheKeyData);
+              const cacheData = sharedMemory.get(cacheKey);
+              if (doCache && cacheData) {
+                for (const [k, v] of Object.entries(cacheData.headers)) {
+                  res.setHeader(k, v.toString());
+                }
+
+                if (typeof cacheData.body == "object") {
+                  res.status(cacheData.status).json(cacheData.body);
+                } else {
+                  res.status(cacheData.status).send(cacheData.body);
+                }
+              } else {
+                const context: any = {
+                  log: (msg: string) =>
+                    console.log(
+                      `${chalk.gray(
+                        `[${new Date().toISOString()}]`
+                      )} ${chalk.cyan(msg)}`
+                    ),
+                  executionContext: {
+                    functionName: route_path ? name : "",
+                  },
+                  bindingData: req.params,
+                  res: {
+                    status: 200,
+                    body: "",
+                  },
+                };
+                const event = {
+                  url: `http://localhost:${PORT}${req.path}`,
+                  method: req.method,
+                  headers: req.headers,
+                  query: req.query,
+                  params: req.params,
+                  body: req.body,
+                };
+
+                await handler(context, event);
+                const { status, body, headers } = context.res;
+                if (headers) {
+                  for (const [k, v] of Object.entries(headers)) {
+                    res.setHeader(k, v.toString());
+                  }
+                }
+                res.status(status || 200).send(body);
+
+                if (doCache) {
+                  sharedMemory.set(cacheKey, {
+                    status: status || 200,
+                    headers: headers || {},
+                    body,
+                  });
+                  if (io) {
+                    io.emit("cache:update", {
+                      url: req.url,
+                      method: req.method,
+                    });
+                  }
+                }
+              }
             };
           } else {
-            expressHandler = handler;
+            if (typeof handler == "function") {
+              expressHandler = async (
+                req: Request,
+                res: Response,
+                next: NextFunction
+              ) => {
+                let doCache = false;
+                if ("rules" in configs) {
+                  for (const rule of configs.rules) {
+                    if (
+                      req.url.match(new RegExp(rule.url)) &&
+                      rule.method.toLowerCase() == req.method.toLowerCase() &&
+                      rule.cache
+                    ) {
+                      doCache = true;
+                      break;
+                    }
+                  }
+                }
+                let reqHeaders = { ...req.headers };
+                delete reqHeaders["postman-token"];
+                const cacheKeyData = {
+                  params: req.params,
+                  query: req.query,
+                  body: req.body,
+                  headers: reqHeaders,
+                  method: req.method,
+                  url: req.url,
+                };
+                const cacheKey = JSON.stringify(cacheKeyData);
+                const cacheData = sharedMemory.get(cacheKey);
+                if (doCache && cacheData) {
+                  for (const [k, v] of Object.entries(cacheData.headers)) {
+                    res.setHeader(k, v.toString());
+                  }
+
+                  if (typeof cacheData.body == "object") {
+                    res.status(cacheData.status).json(cacheData.body);
+                  } else {
+                    res.status(cacheData.status).send(cacheData.body);
+                  }
+                } else {
+                  let newCacheData = { body: {}, headers: {}, status: 200 };
+                  let newRes: any = { ...res, expressResponse: res };
+                  newRes.json = (body: any = {}) => {
+                    newCacheData.body = body;
+                    return res.json(body);
+                  };
+                  newRes.send = (body: any = "") => {
+                    newCacheData.body = body;
+                    return res.send(body);
+                  };
+                  newRes.status = (code: number) => {
+                    newRes.status(code).json = (body: any = {}) => {
+                      newCacheData.body = body;
+                      return res.json(body);
+                    };
+                    newRes.status(code).send = (body: any = "") => {
+                      newCacheData.body = body;
+                      return res.send(body);
+                    };
+                    newCacheData.status = code;
+                    return res.status(code);
+                  };
+
+                  newRes.setHeader = (
+                    name: string,
+                    value: string | number | readonly string[]
+                  ) => {
+                    newCacheData.headers[name] = value;
+                    return res.setHeader(name, value);
+                  };
+                  if (isAsyncFunction(handler)) {
+                    await handler(req, newRes, next);
+                  } else {
+                    handler(req, newRes, next);
+                  }
+
+                  if (doCache) {
+                    sharedMemory.set(cacheKey, newCacheData);
+                    if (io) {
+                      io.emit("cache:update", {
+                        url: req.url,
+                        method: req.method,
+                      });
+                    }
+                  }
+                }
+              };
+            } else {
+              expressHandler = handler;
+            }
           }
         }
         app.use(route_path, expressHandler);
@@ -370,7 +568,7 @@ const startExpressServer = async () => {
 
         app.use("/peerjs", peerServer);
       }
-      await initRoutes(app, hooksModule);
+      await initRoutes(app, hooksModule, configs);
       if (
         fs.existsSync(eventsFolderPath) &&
         process.env.peer_connection != "on"

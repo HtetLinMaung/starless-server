@@ -93,7 +93,7 @@ const openapi = {
     paths: {},
 };
 const spaPath = node_path_1.default.join(process.cwd(), process.env.spa_path || "dist");
-const initRoutes = (app, hooksModule = {}) => __awaiter(void 0, void 0, void 0, function* () {
+const initRoutes = (app, hooksModule = {}, configs = {}) => __awaiter(void 0, void 0, void 0, function* () {
     if (node_fs_1.default.existsSync(graphqlFolderPath) &&
         node_fs_1.default.existsSync(node_path_1.default.join(graphqlFolderPath, "schema.gql"))) {
         const schemaContents = node_fs_1.default.readFileSync(node_path_1.default.join(graphqlFolderPath, "schema.gql"), "utf8");
@@ -140,60 +140,241 @@ const initRoutes = (app, hooksModule = {}) => __awaiter(void 0, void 0, void 0, 
                 if ("handler" in module) {
                     const { handler } = module;
                     expressHandler = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-                        const event = {
-                            path: req.path,
-                            httpMethod: req.method,
-                            headers: req.headers,
-                            queryStringParameters: req.query,
-                            pathParameters: req.params,
-                            body: req.body ? JSON.stringify(req.body) : null,
-                        };
-                        const lambdaResponse = yield handler(event);
-                        if (lambdaResponse.hasOwnProperty("headers")) {
-                            for (const [k, v] of Object.entries(lambdaResponse.headers)) {
-                                res.setHeader(k, v.toString());
+                        let doCache = false;
+                        if ("rules" in configs) {
+                            for (const rule of configs.rules) {
+                                if (req.url.match(new RegExp(rule.url)) &&
+                                    rule.method.toLowerCase() == req.method.toLowerCase() &&
+                                    rule.cache) {
+                                    doCache = true;
+                                    break;
+                                }
                             }
                         }
-                        res
-                            .status(lambdaResponse.statusCode)
-                            .send(JSON.parse(lambdaResponse.body));
+                        let reqHeaders = Object.assign({}, req.headers);
+                        delete reqHeaders["postman-token"];
+                        const cacheKeyData = {
+                            params: req.params,
+                            query: req.query,
+                            body: req.body,
+                            headers: reqHeaders,
+                            method: req.method,
+                            url: req.url,
+                        };
+                        const cacheKey = JSON.stringify(cacheKeyData);
+                        const cacheData = shared_memory_1.default.get(cacheKey);
+                        if (doCache && cacheData) {
+                            for (const [k, v] of Object.entries(cacheData.headers)) {
+                                res.setHeader(k, v.toString());
+                            }
+                            if (typeof cacheData.body == "object") {
+                                res.status(cacheData.status).json(cacheData.body);
+                            }
+                            else {
+                                res.status(cacheData.status).send(cacheData.body);
+                            }
+                        }
+                        else {
+                            const event = {
+                                path: req.path,
+                                httpMethod: req.method,
+                                headers: req.headers,
+                                queryStringParameters: req.query,
+                                pathParameters: req.params,
+                                body: req.body ? JSON.stringify(req.body) : null,
+                            };
+                            const lambdaResponse = yield handler(event);
+                            if (lambdaResponse.hasOwnProperty("headers")) {
+                                for (const [k, v] of Object.entries(lambdaResponse.headers)) {
+                                    res.setHeader(k, v.toString());
+                                }
+                            }
+                            res
+                                .status(lambdaResponse.statusCode)
+                                .send(JSON.parse(lambdaResponse.body));
+                            if (doCache) {
+                                shared_memory_1.default.set(cacheKey, {
+                                    status: lambdaResponse.statusCode,
+                                    headers: lambdaResponse.headers || {},
+                                    body: JSON.parse(lambdaResponse.body),
+                                });
+                                if (io) {
+                                    io.emit("cache:update", {
+                                        url: req.url,
+                                        method: req.method,
+                                    });
+                                }
+                            }
+                        }
                     });
                 }
                 else {
                     const handler = module.default;
                     if (handler.toString().includes("context")) {
                         expressHandler = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-                            const context = {
-                                log: (msg) => console.log(`${chalk_1.default.gray(`[${new Date().toISOString()}]`)} ${chalk_1.default.cyan(msg)}`),
-                                executionContext: {
-                                    functionName: route_path ? name : "",
-                                },
-                                bindingData: req.params,
-                                res: {
-                                    status: 200,
-                                    body: "",
-                                },
-                            };
-                            const event = {
-                                url: `http://localhost:${PORT}${req.path}`,
-                                method: req.method,
-                                headers: req.headers,
-                                query: req.query,
-                                params: req.params,
-                                body: req.body,
-                            };
-                            yield handler(context, event);
-                            const { status, body, headers } = context.res;
-                            if (headers) {
-                                for (const [k, v] of Object.entries(headers)) {
-                                    res.setHeader(k, v.toString());
+                            let doCache = false;
+                            if ("rules" in configs) {
+                                for (const rule of configs.rules) {
+                                    if (req.url.match(new RegExp(rule.url)) &&
+                                        rule.method.toLowerCase() == req.method.toLowerCase() &&
+                                        rule.cache) {
+                                        doCache = true;
+                                        break;
+                                    }
                                 }
                             }
-                            res.status(status || 200).send(body);
+                            let reqHeaders = Object.assign({}, req.headers);
+                            delete reqHeaders["postman-token"];
+                            const cacheKeyData = {
+                                params: req.params,
+                                query: req.query,
+                                body: req.body,
+                                headers: reqHeaders,
+                                method: req.method,
+                                url: req.url,
+                            };
+                            const cacheKey = JSON.stringify(cacheKeyData);
+                            const cacheData = shared_memory_1.default.get(cacheKey);
+                            if (doCache && cacheData) {
+                                for (const [k, v] of Object.entries(cacheData.headers)) {
+                                    res.setHeader(k, v.toString());
+                                }
+                                if (typeof cacheData.body == "object") {
+                                    res.status(cacheData.status).json(cacheData.body);
+                                }
+                                else {
+                                    res.status(cacheData.status).send(cacheData.body);
+                                }
+                            }
+                            else {
+                                const context = {
+                                    log: (msg) => console.log(`${chalk_1.default.gray(`[${new Date().toISOString()}]`)} ${chalk_1.default.cyan(msg)}`),
+                                    executionContext: {
+                                        functionName: route_path ? name : "",
+                                    },
+                                    bindingData: req.params,
+                                    res: {
+                                        status: 200,
+                                        body: "",
+                                    },
+                                };
+                                const event = {
+                                    url: `http://localhost:${PORT}${req.path}`,
+                                    method: req.method,
+                                    headers: req.headers,
+                                    query: req.query,
+                                    params: req.params,
+                                    body: req.body,
+                                };
+                                yield handler(context, event);
+                                const { status, body, headers } = context.res;
+                                if (headers) {
+                                    for (const [k, v] of Object.entries(headers)) {
+                                        res.setHeader(k, v.toString());
+                                    }
+                                }
+                                res.status(status || 200).send(body);
+                                if (doCache) {
+                                    shared_memory_1.default.set(cacheKey, {
+                                        status: status || 200,
+                                        headers: headers || {},
+                                        body,
+                                    });
+                                    if (io) {
+                                        io.emit("cache:update", {
+                                            url: req.url,
+                                            method: req.method,
+                                        });
+                                    }
+                                }
+                            }
                         });
                     }
                     else {
-                        expressHandler = handler;
+                        if (typeof handler == "function") {
+                            expressHandler = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
+                                let doCache = false;
+                                if ("rules" in configs) {
+                                    for (const rule of configs.rules) {
+                                        if (req.url.match(new RegExp(rule.url)) &&
+                                            rule.method.toLowerCase() == req.method.toLowerCase() &&
+                                            rule.cache) {
+                                            doCache = true;
+                                            break;
+                                        }
+                                    }
+                                }
+                                let reqHeaders = Object.assign({}, req.headers);
+                                delete reqHeaders["postman-token"];
+                                const cacheKeyData = {
+                                    params: req.params,
+                                    query: req.query,
+                                    body: req.body,
+                                    headers: reqHeaders,
+                                    method: req.method,
+                                    url: req.url,
+                                };
+                                const cacheKey = JSON.stringify(cacheKeyData);
+                                const cacheData = shared_memory_1.default.get(cacheKey);
+                                if (doCache && cacheData) {
+                                    for (const [k, v] of Object.entries(cacheData.headers)) {
+                                        res.setHeader(k, v.toString());
+                                    }
+                                    if (typeof cacheData.body == "object") {
+                                        res.status(cacheData.status).json(cacheData.body);
+                                    }
+                                    else {
+                                        res.status(cacheData.status).send(cacheData.body);
+                                    }
+                                }
+                                else {
+                                    let newCacheData = { body: {}, headers: {}, status: 200 };
+                                    let newRes = Object.assign(Object.assign({}, res), { expressResponse: res });
+                                    newRes.json = (body = {}) => {
+                                        newCacheData.body = body;
+                                        return res.json(body);
+                                    };
+                                    newRes.send = (body = "") => {
+                                        newCacheData.body = body;
+                                        return res.send(body);
+                                    };
+                                    newRes.status = (code) => {
+                                        newRes.status(code).json = (body = {}) => {
+                                            newCacheData.body = body;
+                                            return res.json(body);
+                                        };
+                                        newRes.status(code).send = (body = "") => {
+                                            newCacheData.body = body;
+                                            return res.send(body);
+                                        };
+                                        newCacheData.status = code;
+                                        return res.status(code);
+                                    };
+                                    newRes.setHeader = (name, value) => {
+                                        newCacheData.headers[name] = value;
+                                        return res.setHeader(name, value);
+                                    };
+                                    if ((0, types_1.isAsyncFunction)(handler)) {
+                                        yield handler(req, newRes, next);
+                                    }
+                                    else {
+                                        handler(req, newRes, next);
+                                    }
+                                    if (doCache) {
+                                        shared_memory_1.default.set(cacheKey, newCacheData);
+                                        if (io) {
+                                            io.emit("cache:update", {
+                                                url: req.url,
+                                                method: req.method,
+                                            });
+                                        }
+                                    }
+                                }
+                            });
+                        }
+                        else {
+                            expressHandler = handler;
+                        }
                     }
                 }
                 app.use(route_path, expressHandler);
@@ -299,7 +480,7 @@ const startExpressServer = () => __awaiter(void 0, void 0, void 0, function* () 
     }
     else {
         process.on("message", (msg) => {
-            for (const [k, v] of Object.entries(msg.payload)) {
+            for (const [k, v] of Object.entries(msg)) {
                 if (v == null) {
                     delete shared_memory_1.state[k];
                 }
@@ -349,7 +530,7 @@ const startExpressServer = () => __awaiter(void 0, void 0, void 0, function* () 
                 }
                 app.use("/peerjs", peerServer);
             }
-            yield initRoutes(app, hooksModule);
+            yield initRoutes(app, hooksModule, configs);
             if (node_fs_1.default.existsSync(eventsFolderPath) &&
                 process.env.peer_connection != "on") {
                 io = new socket_io_1.Server(server, {
