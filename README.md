@@ -349,5 +349,13 @@ module.exports = {
   },
   peer: {
     path: "/",
+  },
+  rules: [
+    {
+      url: "/*",
+      method: "get",
+      cache: true,
+    },
+  ],
 };
 ```

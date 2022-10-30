@@ -145,7 +145,7 @@ const initRoutes = async (
             if ("rules" in configs) {
               for (const rule of configs.rules) {
                 if (
-                  req.url.match(new RegExp(rule.url)) &&
+                  req.baseUrl.match(new RegExp(rule.url)) &&
                   rule.method.toLowerCase() == req.method.toLowerCase() &&
                   rule.cache
                 ) {
@@ -162,7 +162,7 @@ const initRoutes = async (
               body: req.body,
               headers: reqHeaders,
               method: req.method,
-              url: req.url,
+              url: req.baseUrl,
             };
             const cacheKey = JSON.stringify(cacheKeyData);
             const cacheData = sharedMemory.get(cacheKey);
@@ -197,16 +197,18 @@ const initRoutes = async (
                 .send(JSON.parse(lambdaResponse.body));
 
               if (doCache) {
-                sharedMemory.set(cacheKey, {
+                const newCacheData = {
                   status: lambdaResponse.statusCode,
                   headers: lambdaResponse.headers || {},
                   body: JSON.parse(lambdaResponse.body),
-                });
-                if (io) {
-                  io.emit("cache:update", {
-                    url: req.url,
-                    method: req.method,
-                  });
+                };
+                sharedMemory.set(cacheKey, newCacheData);
+                if (
+                  io &&
+                  cacheData &&
+                  JSON.stringify(cacheData) != JSON.stringify(newCacheData)
+                ) {
+                  io.emit("cache:update", req.query.cachesession);
                 }
               }
             }
@@ -219,7 +221,7 @@ const initRoutes = async (
               if ("rules" in configs) {
                 for (const rule of configs.rules) {
                   if (
-                    req.url.match(new RegExp(rule.url)) &&
+                    req.baseUrl.match(new RegExp(rule.url)) &&
                     rule.method.toLowerCase() == req.method.toLowerCase() &&
                     rule.cache
                   ) {
@@ -236,7 +238,7 @@ const initRoutes = async (
                 body: req.body,
                 headers: reqHeaders,
                 method: req.method,
-                url: req.url,
+                url: req.baseUrl,
               };
               const cacheKey = JSON.stringify(cacheKeyData);
               const cacheData = sharedMemory.get(cacheKey);
@@ -286,16 +288,18 @@ const initRoutes = async (
                 res.status(status || 200).send(body);
 
                 if (doCache) {
-                  sharedMemory.set(cacheKey, {
+                  const newCacheData = {
                     status: status || 200,
                     headers: headers || {},
                     body,
-                  });
-                  if (io) {
-                    io.emit("cache:update", {
-                      url: req.url,
-                      method: req.method,
-                    });
+                  };
+                  sharedMemory.set(cacheKey, newCacheData);
+                  if (
+                    io &&
+                    cacheData &&
+                    JSON.stringify(cacheData) != JSON.stringify(newCacheData)
+                  ) {
+                    io.emit("cache:update", req.query.cachesession);
                   }
                 }
               }
@@ -311,7 +315,7 @@ const initRoutes = async (
                 if ("rules" in configs) {
                   for (const rule of configs.rules) {
                     if (
-                      req.url.match(new RegExp(rule.url)) &&
+                      req.baseUrl.match(new RegExp(rule.url)) &&
                       rule.method.toLowerCase() == req.method.toLowerCase() &&
                       rule.cache
                     ) {
@@ -328,7 +332,7 @@ const initRoutes = async (
                   body: req.body,
                   headers: reqHeaders,
                   method: req.method,
-                  url: req.url,
+                  url: req.baseUrl,
                 };
                 const cacheKey = JSON.stringify(cacheKeyData);
                 const cacheData = sharedMemory.get(cacheKey);
@@ -381,11 +385,12 @@ const initRoutes = async (
 
                   if (doCache) {
                     sharedMemory.set(cacheKey, newCacheData);
-                    if (io) {
-                      io.emit("cache:update", {
-                        url: req.url,
-                        method: req.method,
-                      });
+                    if (
+                      io &&
+                      cacheData &&
+                      JSON.stringify(cacheData) != JSON.stringify(newCacheData)
+                    ) {
+                      io.emit("cache:update", req.query.cachesession);
                     }
                   }
                 }

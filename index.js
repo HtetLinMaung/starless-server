@@ -143,7 +143,7 @@ const initRoutes = (app, hooksModule = {}, configs = {}) => __awaiter(void 0, vo
                         let doCache = false;
                         if ("rules" in configs) {
                             for (const rule of configs.rules) {
-                                if (req.url.match(new RegExp(rule.url)) &&
+                                if (req.baseUrl.match(new RegExp(rule.url)) &&
                                     rule.method.toLowerCase() == req.method.toLowerCase() &&
                                     rule.cache) {
                                     doCache = true;
@@ -159,7 +159,7 @@ const initRoutes = (app, hooksModule = {}, configs = {}) => __awaiter(void 0, vo
                             body: req.body,
                             headers: reqHeaders,
                             method: req.method,
-                            url: req.url,
+                            url: req.baseUrl,
                         };
                         const cacheKey = JSON.stringify(cacheKeyData);
                         const cacheData = shared_memory_1.default.get(cacheKey);
@@ -193,16 +193,16 @@ const initRoutes = (app, hooksModule = {}, configs = {}) => __awaiter(void 0, vo
                                 .status(lambdaResponse.statusCode)
                                 .send(JSON.parse(lambdaResponse.body));
                             if (doCache) {
-                                shared_memory_1.default.set(cacheKey, {
+                                const newCacheData = {
                                     status: lambdaResponse.statusCode,
                                     headers: lambdaResponse.headers || {},
                                     body: JSON.parse(lambdaResponse.body),
-                                });
-                                if (io) {
-                                    io.emit("cache:update", {
-                                        url: req.url,
-                                        method: req.method,
-                                    });
+                                };
+                                shared_memory_1.default.set(cacheKey, newCacheData);
+                                if (io &&
+                                    cacheData &&
+                                    JSON.stringify(cacheData) != JSON.stringify(newCacheData)) {
+                                    io.emit("cache:update", req.query.cachesession);
                                 }
                             }
                         }
@@ -215,7 +215,7 @@ const initRoutes = (app, hooksModule = {}, configs = {}) => __awaiter(void 0, vo
                             let doCache = false;
                             if ("rules" in configs) {
                                 for (const rule of configs.rules) {
-                                    if (req.url.match(new RegExp(rule.url)) &&
+                                    if (req.baseUrl.match(new RegExp(rule.url)) &&
                                         rule.method.toLowerCase() == req.method.toLowerCase() &&
                                         rule.cache) {
                                         doCache = true;
@@ -231,7 +231,7 @@ const initRoutes = (app, hooksModule = {}, configs = {}) => __awaiter(void 0, vo
                                 body: req.body,
                                 headers: reqHeaders,
                                 method: req.method,
-                                url: req.url,
+                                url: req.baseUrl,
                             };
                             const cacheKey = JSON.stringify(cacheKeyData);
                             const cacheData = shared_memory_1.default.get(cacheKey);
@@ -275,16 +275,16 @@ const initRoutes = (app, hooksModule = {}, configs = {}) => __awaiter(void 0, vo
                                 }
                                 res.status(status || 200).send(body);
                                 if (doCache) {
-                                    shared_memory_1.default.set(cacheKey, {
+                                    const newCacheData = {
                                         status: status || 200,
                                         headers: headers || {},
                                         body,
-                                    });
-                                    if (io) {
-                                        io.emit("cache:update", {
-                                            url: req.url,
-                                            method: req.method,
-                                        });
+                                    };
+                                    shared_memory_1.default.set(cacheKey, newCacheData);
+                                    if (io &&
+                                        cacheData &&
+                                        JSON.stringify(cacheData) != JSON.stringify(newCacheData)) {
+                                        io.emit("cache:update", req.query.cachesession);
                                     }
                                 }
                             }
@@ -296,7 +296,7 @@ const initRoutes = (app, hooksModule = {}, configs = {}) => __awaiter(void 0, vo
                                 let doCache = false;
                                 if ("rules" in configs) {
                                     for (const rule of configs.rules) {
-                                        if (req.url.match(new RegExp(rule.url)) &&
+                                        if (req.baseUrl.match(new RegExp(rule.url)) &&
                                             rule.method.toLowerCase() == req.method.toLowerCase() &&
                                             rule.cache) {
                                             doCache = true;
@@ -312,7 +312,7 @@ const initRoutes = (app, hooksModule = {}, configs = {}) => __awaiter(void 0, vo
                                     body: req.body,
                                     headers: reqHeaders,
                                     method: req.method,
-                                    url: req.url,
+                                    url: req.baseUrl,
                                 };
                                 const cacheKey = JSON.stringify(cacheKeyData);
                                 const cacheData = shared_memory_1.default.get(cacheKey);
@@ -362,11 +362,10 @@ const initRoutes = (app, hooksModule = {}, configs = {}) => __awaiter(void 0, vo
                                     }
                                     if (doCache) {
                                         shared_memory_1.default.set(cacheKey, newCacheData);
-                                        if (io) {
-                                            io.emit("cache:update", {
-                                                url: req.url,
-                                                method: req.method,
-                                            });
+                                        if (io &&
+                                            cacheData &&
+                                            JSON.stringify(cacheData) != JSON.stringify(newCacheData)) {
+                                            io.emit("cache:update", req.query.cachesession);
                                         }
                                     }
                                 }
