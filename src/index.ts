@@ -17,6 +17,8 @@ import os from "node:os";
 import http from "node:http";
 import https from "node:https";
 import { isAsyncFunction } from "util/types";
+import { createAdapter, setupPrimary } from "@socket.io/cluster-adapter";
+import { setupMaster, setupWorker } from "@socket.io/sticky";
 
 import swaggerUi from "swagger-ui-express";
 import getFiles from "./utils/get-files";
@@ -491,7 +493,36 @@ const startExpressServer = async () => {
 
   app.use(express.static(spaPath));
 
+  const server =
+    process.env.ssl_key && process.env.ssl_cert
+      ? https.createServer(
+          {
+            key: fs.readFileSync(process.env.ssl_key),
+            cert: fs.readFileSync(process.env.ssl_cert),
+          },
+          app
+        )
+      : http.createServer(app);
+
   if (cluster.isPrimary) {
+    // setup sticky sessions
+    setupMaster(server, {
+      loadBalancingMethod: "least-connection",
+    });
+
+    // setup connections between the workers
+    setupPrimary();
+
+    // needed for packets containing buffers (you can ignore it if you only send plaintext objects)
+    // Node.js < 16.0.0
+    // cluster.setupMaster({
+    //   serialization: "advanced",
+    // } as any);
+    // Node.js > 16.0.0
+    cluster.setupPrimary({
+      serialization: "advanced",
+    } as any);
+
     const msgHandler = (msg) => {
       for (const [k, v] of Object.entries(msg)) {
         if (v == null) {
@@ -524,16 +555,6 @@ const startExpressServer = async () => {
         }
       }
     });
-    const server =
-      process.env.ssl_key && process.env.ssl_cert
-        ? https.createServer(
-            {
-              key: fs.readFileSync(process.env.ssl_key),
-              cert: fs.readFileSync(process.env.ssl_cert),
-            },
-            app
-          )
-        : http.createServer(app);
 
     server.listen(PORT, async () => {
       console.log(
@@ -583,6 +604,13 @@ const startExpressServer = async () => {
             origin: "*",
           },
         });
+
+        // use the cluster adapter
+        io.adapter(createAdapter());
+
+        // setup connection with the primary process
+        setupWorker(io);
+
         if ("afterSocketIOStart" in hooksModule) {
           if (isAsyncFunction(hooksModule.afterSocketIOStart)) {
             await hooksModule.afterSocketIOStart(io);
