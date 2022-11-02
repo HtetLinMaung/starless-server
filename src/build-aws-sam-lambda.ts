@@ -40,7 +40,7 @@ export default async function buildAwsSamLambda() {
     if (
       !absolute.includes("node_modules") &&
       !absolute.includes("azure_functions") &&
-      !absolute.includes("aws_lambda") &&
+      !absolute.includes(awsProjectFolderName) &&
       !absolute.includes("dist") &&
       !absolute.includes(".vscode") &&
       !absolute.includes("routes") &&
@@ -100,7 +100,7 @@ export default async function buildAwsSamLambda() {
   let templateYamlResources = "";
   for (const route of routes) {
     if (route.endsWith(".js")) {
-      const { func_name } = parseRoute(
+      const { func_name, route_path } = parseRoute(
         route.replace(routesFolderPath, ""),
         "lambda"
       );
@@ -233,7 +233,7 @@ exports.handler = handler;
         ${funcName}:
           Type: Api 
           Properties:
-            Path: /${funcName}
+            Path: /${route_path.slice(1, route_path.length)}
             Method: any\n`;
     }
   }

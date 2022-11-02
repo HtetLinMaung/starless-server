@@ -40,7 +40,7 @@ export default async function buildAwsLambda() {
     if (
       !absolute.includes("node_modules") &&
       !absolute.includes("azure_functions") &&
-      !absolute.includes("aws_lambda") &&
+      !absolute.includes(awsProjectFolderName) &&
       !absolute.includes("dist") &&
       !absolute.includes(".vscode") &&
       !absolute.includes("routes") &&

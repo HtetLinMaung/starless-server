@@ -69,7 +69,7 @@ function buildAwsLambda() {
             const absolute = path_1.default.join(rootPath, file);
             if (!absolute.includes("node_modules") &&
                 !absolute.includes("azure_functions") &&
-                !absolute.includes("aws_lambda") &&
+                !absolute.includes(awsProjectFolderName) &&
                 !absolute.includes("dist") &&
                 !absolute.includes(".vscode") &&
                 !absolute.includes("routes") &&

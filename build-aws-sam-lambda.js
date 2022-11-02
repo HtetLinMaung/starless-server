@@ -69,7 +69,7 @@ function buildAwsSamLambda() {
             const absolute = path_1.default.join(rootPath, file);
             if (!absolute.includes("node_modules") &&
                 !absolute.includes("azure_functions") &&
-                !absolute.includes("aws_lambda") &&
+                !absolute.includes(awsProjectFolderName) &&
                 !absolute.includes("dist") &&
                 !absolute.includes(".vscode") &&
                 !absolute.includes("routes") &&
@@ -116,7 +116,7 @@ function buildAwsSamLambda() {
         let templateYamlResources = "";
         for (const route of routes) {
             if (route.endsWith(".js")) {
-                const { func_name } = (0, parse_route_1.default)(route.replace(routesFolderPath, ""), "lambda");
+                const { func_name, route_path } = (0, parse_route_1.default)(route.replace(routesFolderPath, ""), "lambda");
                 const funcName = func_name;
                 const module = yield Promise.resolve().then(() => __importStar(require(route)));
                 const funcFolderPath = path_1.default.join(awsProjectFolderPath, funcName);
@@ -234,7 +234,7 @@ exports.handler = handler;
         ${funcName}:
           Type: Api 
           Properties:
-            Path: /${funcName}
+            Path: /${route_path.slice(1, route_path.length)}
             Method: any\n`;
             }
         }

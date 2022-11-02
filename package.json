@@ -1,13 +1,14 @@
 {
   "name": "starless-server",
-  "version": "1.11.0",
+  "version": "1.11.1",
   "description": "",
   "main": "index.js",
   "scripts": {
     "start": "tsc && node index start",
     "dev": "nodemon src/index.ts start",
     "build": "tsc && rm -rf swagger.json",
-    "release": "tsc && npm publish"
+    "release": "tsc && npm publish",
+    "build-aws-sam-lambda": "tsc && node index build --aws-sam-lambda"
   },
   "bin": "./index.js",
   "keywords": [],
