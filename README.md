@@ -25,7 +25,7 @@ Open package.json and add the following scripts:
 ```json
 "scripts": {
   "start": "starless-server start",
-  "build": "starless-server build --azure-functions --aws-lambda"
+  "build": "starless-server build --azure-functions --aws-lambda --aws-sam-lambda"
 }
 ```
 
@@ -320,13 +320,13 @@ Open package.json and add the build scripts:
 ```json
 "scripts": {
   ...
-  "build": "starless-server build --azure-functions --aws-lambda"
+  "build": "starless-server build --azure-functions --aws-lambda --aws-sam-lambda"
 }
 ```
 
 > [Azure Functions Core Tools](https://github.com/Azure/azure-functions-core-tools) is required for building azure-functions
 
-Run `npm run build`. Two directories `azure_functions` and `aws_lambda` will created in your application root directory.
+Run `npm run build`. Two directories `azure_functions`, `aws_lambda` and `aws_sam_lambda` will created in your application root directory.
 
 - For deploying azure function see more at [Azure Function](https://docs.microsoft.com/en-us/azure/azure-functions/create-first-function-vs-code-node#deploy-the-project-to-azure)
 - For lambda you must manually copy codes from aws_lambda directory and paste at lambda functions console. Files not from `routes` directory are placed and zipped in `layers/common/common.zip`. You must upload `common.zip` as lambda layer. See more at [Lambda Layers](https://docs.aws.amazon.com/lambda/latest/dg/configuration-layers.html)

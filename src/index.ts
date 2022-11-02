@@ -26,6 +26,7 @@ import buildAzureFunction from "./build-azure-function";
 import buildAwsLambda from "./build-aws-lambda";
 import parseRoute from "./utils/parse-route";
 import sharedMemory, { state } from "./shared-memory";
+import buildAwsSamLambda from "./build-aws-sam-lambda";
 
 let io: any;
 
@@ -634,6 +635,9 @@ if (args.includes("start")) {
   }
   if (args.includes("--aws-lambda")) {
     buildAwsLambda();
+  }
+  if (args.includes("--aws-sam-lambda")) {
+    buildAwsSamLambda();
   }
 }
 

@@ -59,6 +59,7 @@ const build_azure_function_1 = __importDefault(require("./build-azure-function")
 const build_aws_lambda_1 = __importDefault(require("./build-aws-lambda"));
 const parse_route_1 = __importDefault(require("./utils/parse-route"));
 const shared_memory_1 = __importStar(require("./shared-memory"));
+const build_aws_sam_lambda_1 = __importDefault(require("./build-aws-sam-lambda"));
 let io;
 const PORT = process.env.port || 3000;
 let worker_processes = 1;
@@ -571,6 +572,9 @@ else if (args.includes("build")) {
     }
     if (args.includes("--aws-lambda")) {
         (0, build_aws_lambda_1.default)();
+    }
+    if (args.includes("--aws-sam-lambda")) {
+        (0, build_aws_sam_lambda_1.default)();
     }
 }
 const server = {
