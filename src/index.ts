@@ -308,7 +308,7 @@ const initRoutes = async (
               }
             };
           } else {
-            if (typeof handler == "function") {
+            if (process.env.express_handler_mode != "native") {
               expressHandler = async (
                 req: Request,
                 res: Response,

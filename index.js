@@ -294,7 +294,7 @@ const initRoutes = (app, hooksModule = {}, configs = {}) => __awaiter(void 0, vo
                         });
                     }
                     else {
-                        if (typeof handler == "function") {
+                        if (process.env.express_handler_mode != "native") {
                             expressHandler = (req, res, next) => __awaiter(void 0, void 0, void 0, function* () {
                                 let doCache = false;
                                 if ("rules" in configs) {
