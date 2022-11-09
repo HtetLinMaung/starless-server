@@ -220,7 +220,7 @@ exports.handler = handler;
                 }
                 fs_1.default.writeFileSync(path_1.default.join(funcFolderPath, "index.js"), fileContent.replace(/(\.\.\/)+/g, "/opt/"));
                 templateYamlResources += `
-  ${funcName.replace(/_/g, "")}:
+  ${funcName.replace(/_/g, "").replace(/-/g, "")}:
     Type: AWS::Serverless::Function 
     Properties:
       CodeUri: ${funcName}/

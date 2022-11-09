@@ -219,7 +219,7 @@ exports.handler = handler;
         fileContent.replace(/(\.\.\/)+/g, "/opt/")
       );
       templateYamlResources += `
-  ${funcName.replace(/_/g, "")}:
+  ${funcName.replace(/_/g, "").replace(/-/g, "")}:
     Type: AWS::Serverless::Function 
     Properties:
       CodeUri: ${funcName}/
