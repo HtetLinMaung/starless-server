@@ -268,10 +268,12 @@ After starting the server, open the browser and check http://localhost:3000/peer
 
 If you want to run some scripts before or after server start, create `hooks.js` at the root of your application.
 
-There are six life cycle hooks
+There are eight life cycle hooks
 
 - beforeServerStart - Run before server start
 - afterServerStart - Run after server start
+- afterMasterProcessStart - Run after primary process start
+- afterWorkerStart - Run after worker start
 - errorHandler - Express error handler
 - afterPeerConnected - Run after peer connects to the server
 - afterPeerDisconnected - Run after peer disconnects from the server
@@ -285,6 +287,14 @@ exports.beforeServerStart = (app) => {
 exports.afterServerStart = (server) => {
   console.log("After server start.");
 };
+
+exports.afterMasterProcessStart = (cluster) => {
+  console.log("After master process start.");
+};
+
+exports.afterWorkerStart = (cluster) => {
+  console.log("After worker start.)
+}
 
 exports.errorHandler = (err, req, res, next) => {
   console.error(err);

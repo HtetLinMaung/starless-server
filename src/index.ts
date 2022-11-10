@@ -506,6 +506,13 @@ const startExpressServer = async () => {
       : http.createServer(app);
 
   if (cluster.isPrimary) {
+    if ("afterMasterProcessStart" in hooksModule) {
+      if (isAsyncFunction(hooksModule.afterMasterProcessStart)) {
+        await hooksModule.afterMasterProcessStart(cluster);
+      } else {
+        hooksModule.afterMasterProcessStart(cluster);
+      }
+    }
     // setup sticky sessions
     setupMaster(server, {
       loadBalancingMethod: "least-connection",
@@ -547,6 +554,13 @@ const startExpressServer = async () => {
       newWorker.on("message", msgHandler);
     });
   } else {
+    if ("afterWorkerStart" in hooksModule) {
+      if (isAsyncFunction(hooksModule.afterWorkerStart)) {
+        await hooksModule.afterWorkerStart(cluster);
+      } else {
+        hooksModule.afterWorkerStart(cluster);
+      }
+    }
     process.on("message", (msg: any) => {
       for (const [k, v] of Object.entries(msg)) {
         if (v == null) {

@@ -463,6 +463,14 @@ const startExpressServer = () => __awaiter(void 0, void 0, void 0, function* () 
         }, app)
         : node_http_1.default.createServer(app);
     if (node_cluster_1.default.isPrimary) {
+        if ("afterMasterProcessStart" in hooksModule) {
+            if ((0, types_1.isAsyncFunction)(hooksModule.afterMasterProcessStart)) {
+                yield hooksModule.afterMasterProcessStart(node_cluster_1.default);
+            }
+            else {
+                hooksModule.afterMasterProcessStart(node_cluster_1.default);
+            }
+        }
         (0, sticky_1.setupMaster)(server, {
             loadBalancingMethod: "least-connection",
         });
@@ -494,6 +502,14 @@ const startExpressServer = () => __awaiter(void 0, void 0, void 0, function* () 
         });
     }
     else {
+        if ("afterWorkerStart" in hooksModule) {
+            if ((0, types_1.isAsyncFunction)(hooksModule.afterWorkerStart)) {
+                yield hooksModule.afterWorkerStart(node_cluster_1.default);
+            }
+            else {
+                hooksModule.afterWorkerStart(node_cluster_1.default);
+            }
+        }
         process.on("message", (msg) => {
             for (const [k, v] of Object.entries(msg)) {
                 if (v == null) {
