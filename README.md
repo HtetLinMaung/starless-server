@@ -164,8 +164,6 @@ module.exports = (req, res) => {
 };
 ```
 
-> <b>Note</b> You should not use dynamic routes with lambda and azure function. Building dynamic route lambda and azure function is not supported.
-
 ## Static File Serving
 
 starless-server can serve static files, like images, under a folder called `public` in the root directory. Files inside public can then be requested by your browser starting from the base URL `/`.
@@ -199,7 +197,7 @@ worker_processes=4
 
 ## SSL Certificate
 
-If you want to add SSL certificate, you can set certificate file path in `ssl_key` and `ssl_cert`.
+If you want to add SSL certificate, you can set certificate file path in `ssl_key` and `ssl_cert` in environment.
 
 ```
 ...
@@ -320,10 +318,11 @@ exports.afterSocketIOStart = (client) => {
 
 In starless-server, you can write both Azure Functions and AWS Lambda. When you want to deploy those functions to lambda or azure-functions you don't need to worry about changing azure function code to lambda or lambda code to azure function vice versa. starless-server will automatically handle those heavy task for you when building.
 
-Two options can be passed in build command:
+Three options can be passed in build command:
 
 - `--azure-functions` - build for azure-function
 - `--aws-lambda` - build for lambda
+- `--aws-sam-lambda` - build for sam lambda
 
 Open package.json and add the build scripts:
 

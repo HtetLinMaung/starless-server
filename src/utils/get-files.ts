@@ -1,5 +1,5 @@
-import fs from "fs";
-import path from "path";
+import fs from "node:fs";
+import path from "node:path";
 
 export default function getFiles(directory: string, files: string[] = []) {
   if (!fs.existsSync(directory)) {

@@ -1,5 +1,5 @@
-import path from "path";
-import fs from "fs";
+import path from "node:path";
+import fs from "node:fs";
 import util from "util";
 import zip from "adm-zip";
 import getFiles from "./utils/get-files";
