@@ -420,7 +420,7 @@ const initRoutes = async (
   );
 
   if (fs.existsSync(spaPath)) {
-    app.use("/*", (req: Request, res: Response) => {
+    app.get("/*", (req: Request, res: Response) => {
       res.sendFile(path.join(spaPath, "index.html"));
     });
   }
