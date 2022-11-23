@@ -6,7 +6,7 @@ function parseRoute(route, mode = "express") {
         .join("/")
         .replace("/index.js", "")
         .replace(".js", "");
-    for (const match of route_path.match(/\[(\w+)\]/g)) {
+    for (const match of route_path.match(/\[(\w+)\]/g) || []) {
         route_path = route_path.replace(match, `:${match.replace("[", "").replace("]", "")}`);
     }
     if (mode == "function") {
