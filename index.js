@@ -267,7 +267,9 @@ const initRoutes = (app, hooksModule = {}, configs = {}) => __awaiter(void 0, vo
                                     headers: req.headers,
                                     query: req.query,
                                     params: req.params,
-                                    body: req.body,
+                                    body: req.body && Object.keys(req.body).length
+                                        ? req.body
+                                        : undefined,
                                 };
                                 yield handler(context, event);
                                 const { status, body, headers } = context.res;
@@ -390,7 +392,7 @@ const initRoutes = (app, hooksModule = {}, configs = {}) => __awaiter(void 0, vo
     app.use("/swagger", swagger_ui_express_1.default.serve, swagger_ui_express_1.default.setup(swaggerDocument));
     console.log(`\t${chalk_1.default.yellow("swagger")} ${chalk_1.default.green("[GET] http://localhost:" + PORT + "/swagger")}\n`);
     if (node_fs_1.default.existsSync(spaPath)) {
-        app.use("/*", (req, res) => {
+        app.get("/*", (req, res) => {
             res.sendFile(node_path_1.default.join(spaPath, "index.html"));
         });
     }

@@ -130,7 +130,7 @@ module.exports = router;
 
 ## Dynamic Routes
 
-starless-server supports express dynamic routes. For example, if you create a file called `routes/posts/:id.js`, then it will be accessible at `posts/1`, `posts/2`, etc.
+starless-server supports express dynamic routes. For example, if you create a file called `routes/posts/[id].js`, then it will be accessible at `posts/1`, `posts/2`, etc.
 
 ```js
 const posts = [

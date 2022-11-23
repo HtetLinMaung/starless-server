@@ -4,6 +4,14 @@ export default function parseRoute(route: string, mode = "express") {
     .join("/")
     .replace("/index.js", "")
     .replace(".js", "");
+
+  for (const match of route_path.match(/\[(\w+)\]/g)) {
+    route_path = route_path.replace(
+      match,
+      `:${match.replace("[", "").replace("]", "")}`
+    );
+  }
+
   if (mode == "function") {
     route_path = route_path
       .split("/")

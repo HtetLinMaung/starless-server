@@ -278,7 +278,10 @@ const initRoutes = async (
                   headers: req.headers,
                   query: req.query,
                   params: req.params,
-                  body: req.body,
+                  body:
+                    req.body && Object.keys(req.body).length
+                      ? req.body
+                      : undefined,
                 };
 
                 await handler(context, event);

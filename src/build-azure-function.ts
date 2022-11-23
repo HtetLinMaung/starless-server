@@ -134,7 +134,7 @@ export default async function buildAzureFunction() {
         headers: req.headers,
         query: req.query,
         params: req.bindingData,
-        body: req.body,
+        body: req.body || {},
       };
       context.res = {
         status: 200,

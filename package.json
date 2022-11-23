@@ -1,6 +1,6 @@
 {
   "name": "starless-server",
-  "version": "1.11.6",
+  "version": "1.11.8",
   "description": "",
   "main": "index.js",
   "scripts": {
