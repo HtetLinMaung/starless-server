@@ -276,6 +276,7 @@ There are eight life cycle hooks
 - afterPeerConnected - Run after peer connects to the server
 - afterPeerDisconnected - Run after peer disconnects from the server
 - afterSocketIOStart - Run after socketio server start
+- afterSocketConnected - Run after socket connected
 
 ```js
 exports.beforeServerStart = (app) => {
@@ -310,6 +311,10 @@ exports.afterPeerDisconnected = (client) => {
 exports.afterSocketIOStart = (client) => {
   console.log("After socketio start.");
 };
+
+exports.afterSocketConnected = (io, socket) => {
+  console.log('After socket connected.')
+}
 ```
 
 > <b>Note</b> Hooks are only works in starless-server. Do not use it for azure functions and lambda applications.

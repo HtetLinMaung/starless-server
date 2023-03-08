@@ -400,7 +400,7 @@ const initRoutes = (app, hooksModule = {}, configs = {}) => __awaiter(void 0, vo
         app.use(hooksModule.errorHandler);
     }
 });
-const initEvents = (io) => __awaiter(void 0, void 0, void 0, function* () {
+const initEvents = (io, hooksModule) => __awaiter(void 0, void 0, void 0, function* () {
     const handlers = [];
     const files = (0, get_files_1.default)(eventsFolderPath);
     for (const file of files.filter((f) => f.endsWith(".js"))) {
@@ -414,6 +414,9 @@ const initEvents = (io) => __awaiter(void 0, void 0, void 0, function* () {
         console.log(chalk_1.default.green(`Registered ${eventname} event.\n`));
     }
     io.on("connection", (socket) => {
+        if ("afterSocketConnected" in hooksModule) {
+            hooksModule.afterSocketConnected(io, socket);
+        }
         handlers.forEach((h) => {
             socket.on(h.eventname, h.handler(io, socket));
         });
@@ -575,7 +578,7 @@ const startExpressServer = () => __awaiter(void 0, void 0, void 0, function* () 
                         hooksModule.afterSocketIOStart(io);
                     }
                 }
-                initEvents(io);
+                initEvents(io, hooksModule);
             }
         }));
     }

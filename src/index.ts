@@ -433,7 +433,7 @@ const initRoutes = async (
   }
 };
 
-const initEvents = async (io) => {
+const initEvents = async (io, hooksModule: any) => {
   const handlers = [];
   const files = getFiles(eventsFolderPath);
   for (const file of files.filter((f) => f.endsWith(".js"))) {
@@ -448,6 +448,9 @@ const initEvents = async (io) => {
   }
 
   io.on("connection", (socket) => {
+    if ("afterSocketConnected" in hooksModule) {
+      hooksModule.afterSocketConnected(io, socket);
+    }
     handlers.forEach((h) => {
       socket.on(h.eventname, h.handler(io, socket));
     });
@@ -636,7 +639,7 @@ const startExpressServer = async () => {
             hooksModule.afterSocketIOStart(io);
           }
         }
-        initEvents(io);
+        initEvents(io, hooksModule);
       }
     });
   }
