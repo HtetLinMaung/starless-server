@@ -627,11 +627,13 @@ const startExpressServer = async () => {
           },
         });
 
-        // use the cluster adapter
-        io.adapter(createAdapter());
+        if (worker_processes > 1) {
+          // use the cluster adapter
+          io.adapter(createAdapter());
 
-        // setup connection with the primary process
-        setupWorker(io);
+          // setup connection with the primary process
+          setupWorker(io);
+        }
 
         if ("afterSocketIOStart" in hooksModule) {
           if (isAsyncFunction(hooksModule.afterSocketIOStart)) {
