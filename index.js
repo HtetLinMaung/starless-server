@@ -563,14 +563,18 @@ const startExpressServer = () => __awaiter(void 0, void 0, void 0, function* () 
             yield initRoutes(app, hooksModule, configs);
             if (node_fs_1.default.existsSync(eventsFolderPath) &&
                 process.env.peer_connection != "on") {
-                io = new socket_io_1.Server(server, {
-                    pingTimeout: parseInt(process.env.socketio_ping_timeout || "20000"),
-                    cors: {
-                        origin: "*",
-                    },
-                });
-                io.adapter((0, cluster_adapter_1.createAdapter)());
-                (0, sticky_1.setupWorker)(io);
+                io = new socket_io_1.Server(server, configs.socketio
+                    ? configs.socketio
+                    : {
+                        pingTimeout: parseInt(process.env.socketio_ping_timeout || "20000"),
+                        cors: {
+                            origin: "*",
+                        },
+                    });
+                if (worker_processes > 1) {
+                    io.adapter((0, cluster_adapter_1.createAdapter)());
+                    (0, sticky_1.setupWorker)(io);
+                }
                 if ("afterSocketIOStart" in hooksModule) {
                     if ((0, types_1.isAsyncFunction)(hooksModule.afterSocketIOStart)) {
                         yield hooksModule.afterSocketIOStart(io);

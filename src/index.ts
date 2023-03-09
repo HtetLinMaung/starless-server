@@ -620,12 +620,19 @@ const startExpressServer = async () => {
         fs.existsSync(eventsFolderPath) &&
         process.env.peer_connection != "on"
       ) {
-        io = new Server(server, {
-          pingTimeout: parseInt(process.env.socketio_ping_timeout || "20000"),
-          cors: {
-            origin: "*",
-          },
-        });
+        io = new Server(
+          server,
+          configs.socketio
+            ? configs.socketio
+            : {
+                pingTimeout: parseInt(
+                  process.env.socketio_ping_timeout || "20000"
+                ),
+                cors: {
+                  origin: "*",
+                },
+              }
+        );
 
         if (worker_processes > 1) {
           // use the cluster adapter

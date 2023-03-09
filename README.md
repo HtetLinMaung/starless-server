@@ -364,6 +364,11 @@ module.exports = {
   peer: {
     path: "/",
   },
+  socketio: {
+    cors: {
+      origin: "*",
+    },
+  },
   rules: [
     {
       url: "/*",
