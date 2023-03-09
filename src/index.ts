@@ -621,6 +621,7 @@ const startExpressServer = async () => {
         process.env.peer_connection != "on"
       ) {
         io = new Server(server, {
+          pingTimeout: parseInt(process.env.socketio_ping_timeout || "20000"),
           cors: {
             origin: "*",
           },

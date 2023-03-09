@@ -564,6 +564,7 @@ const startExpressServer = () => __awaiter(void 0, void 0, void 0, function* () 
             if (node_fs_1.default.existsSync(eventsFolderPath) &&
                 process.env.peer_connection != "on") {
                 io = new socket_io_1.Server(server, {
+                    pingTimeout: parseInt(process.env.socketio_ping_timeout || "20000"),
                     cors: {
                         origin: "*",
                     },
