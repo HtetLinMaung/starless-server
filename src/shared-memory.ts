@@ -6,27 +6,27 @@ export interface DynamicObject {
 
 export const state: DynamicObject = {};
 
+const broadcastMessage = (message: DynamicObject) => {
+  for (const id in cluster.workers) {
+    cluster.workers[id].send(message);
+  }
+};
+
+const sendMessage = (message: DynamicObject) => {
+  if (cluster.isPrimary) {
+    broadcastMessage(message);
+  } else {
+    process.send(message);
+  }
+};
+
 export default {
   set: (key: string, value: any) => {
-    if (cluster.isPrimary) {
-      for (const id in cluster.workers) {
-        cluster.workers[id].send({ [key]: value });
-      }
-    } else {
-      process.send({ [key]: value });
-    }
+    sendMessage({ [key]: value });
   },
   setAll: (payload: DynamicObject) => {
-    if (cluster.isPrimary) {
-      for (const id in cluster.workers) {
-        cluster.workers[id].send(payload);
-      }
-    } else {
-      process.send(payload);
-    }
+    sendMessage(payload);
   },
   get: (key: string) => state[key],
-  getAll(): DynamicObject {
-    return { ...state };
-  },
+  getAll: (): DynamicObject => ({ ...state }),
 };
